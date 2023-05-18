@@ -1,0 +1,57 @@
+---
+title: "Introduction"
+format: html
+editor: visual
+date: 2023-06-05
+toc: true
+toc-location: left
+self-contained: true
+html: true
+---
+
+## Introduction
+Housekeeping, introductions
+
+## Key Concepts Across Both languages
+In both R and Python
+
+### proj, gdal, netcdf, curl
+
+### drainage basins and catchments - mainstems and flowpaths
+
+### geospatial data representation fundamentals, simple features and geospatial grids
+
+
+## Demonstration of Key Concepts in Each Language
+
+- drainage basins and catchments - mainstems and flowpaths
+- geospatial data representation fundamentals, simple features and geospatial grids
+
+### Examples in R
+
+### Examples in Python (will be in a separate notebook in binder)
+
+## Use Cases
+
+### First show how satisfied?
+
+- hydro addressing and network navigation
+- catchment characteristics and accumulation
+- spatial data aggregation and resampling
+
+### First use case walk-through
+In R here and in separate notebook for Python
+
+### Second use case walk-through
+In R here and in separate notebook for Python
+
+etc
+
+## Data access summary -- web services and scalability
+
+
+
+
+
+
+
