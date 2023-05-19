@@ -10,22 +10,114 @@ html: true
 ---
 
 ## Introduction
+
 Housekeeping, introductions
 
 ## Key Concepts Across Both languages
+
 In both R and Python
 
 ### proj, gdal, netcdf, curl
+- Spatial data across languages and applications is primarily organized through [OSgeo](https://www.osgeo.org) and [OGC](https://www.ogc.org)) _and_ a few core libraries underpin spatial libraries in programming languages and in software applications(R, Python, QGIS, ArcPro)!
 
+These libraries include: 
+
+  - **PROJ** --> projections, transformations  
+  
+  - **GEOS** --> Geometry operations (measures, relations)
+  
+  - **GDAL** --> geodata abstraction and processing (read, write)
 ### drainage basins and catchments - mainstems and flowpaths
 
-### geospatial data representation fundamentals, simple features and geospatial grids
+### Geospatial data representation fundamentals, simple features and geospatial grids
+- "Vector" data are comprised of points, lines, and polygons that represent discrete spatial entities, such as a river, watershed, or stream gauge.
 
+- "Raster" data divides spaces into rectilinear cells (pixels) to represent spatially continuous phenomena, such as elevation or the weather. The cell size (or resolution) defines the fidelity of the data.
 
+```{r, fig.align='center', echo = FALSE, out.width="75%" }
+knitr::include_graphics("img/09-vec-raster.jpg")
+```
+Simple Features (officially Simple Feature Access) is both an OGC and International Organization for Standardization (ISO) standard that specifies how (mostly) two-dimensional geometries can represent and describe objects in the real world. 
+
+It describes how such objects can be stored in and retrieved from databases, and which geometrical operations should be defined for them.
+
+It outlines how the spatial elements of POINTS (XY locations with a specific coordinate reference system) extend to LINES, POLYGONS and GEOMETRYCOLLECTION(s).
+
+```{r, fig.align='center', echo = FALSE, out.width="75%" }
+knitr::include_graphics("img/09-sf-model.png")
+```
+
+#### sf: simple features
+
+In R, the [`sf` package](https://cran.r-project.org/web/packages/sf/index.html) provides "_support for simple features, a standardized way to encode spatial vector data.... [and] Binds to 'GDAL' for reading and writing data, to 'GEOS' for geometrical operations, and to 'PROJ' for projection conversions and datum transformations._" 
+
+Therefore when using R, you are using an interface to the core community standards, software, and practices (this is no exclusive to R). TO highlight this we can install (do this once) and attach `sf` to view the external dependencies versions of the libraries linked to `sf`. 
+
+```{r}
+# install.packages("sf")
+library(sf)
+
+sf_extSoftVersion()
+```
+
+The bindings to these lower-level C libraries, and, the larger `sf` ecosystem in R can be seen below:
+
+```{r, fig.align='center', echo = FALSE, out.width="75%" }
+knitr::include_graphics("img/09-sf-depends.png")
+```
+
+What is novel about the `sf` implementation in the R ecosystem is the way in which the authors built on the list structure in R to store simple feature geometries (sfg) as part of a larger data.frame using a simple feature geometry list-column (sfg). The collection of attribute and spatial information define a simple feature that can be operated on in both table (SQL) and spatial (GEOS, etc) contexts. Not only does this allow us to make the most use of the growing spatial community but _also_ of the growing data science community (see `ggplot`, `dplyr`, `data.table`, `dbplyr`, `arrow`, etc.)
+
+In practice, an `sf` object in R looks like the following:
+
+```{r, fig.align='center', echo = FALSE, out.width="75%" }
+knitr::include_graphics("img/sf_xfig.png")
+```
+
+This extends the idea of ["tidy" data](https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html) in that each row represents one observation, which has one geometric representation of the real world feature it describes.
+
+#### Basic use:
+
+```{r}
+# Define file path
+(filename <- system.file("shape/nc.shp", package="sf"))
+
+# read in file
+(nc <- read_sf(filename) )
+```
+
+```{r}
+# Map
+plot(nc['SID79'])
+
+# Spatial measures!
+head(st_area(nc))
+
+# Spatial operations!
+{
+  st_union(nc) |> plot()
+  
+  st_centroid(nc)$geometry |> plot(col = "red", add = TRUE)
+}
+
+# data science operations
+library(dplyr)
+
+{
+ plot(nc$geometry)
+ plot(slice_max(nc, AREA, n = 10)$geometry, 
+      col = "red", add = TRUE)
+ plot(slice_max(nc, AREA, n =5)$geometry, 
+      col = "yellow", add = TRUE)
+ plot(slice_max(nc, AREA, n = 1)$geometry, 
+      col = "green", add = TRUE)
+}
+
+```
 ## Demonstration of Key Concepts in Each Language
 
-- drainage basins and catchments - mainstems and flowpaths
-- geospatial data representation fundamentals, simple features and geospatial grids
+-   drainage basins and catchments - mainstems and flowpaths
+-   geospatial data representation fundamentals, simple features and geospatial grids
 
 ### Examples in R
 
@@ -35,23 +127,18 @@ In both R and Python
 
 ### First show how satisfied?
 
-- hydro addressing and network navigation
-- catchment characteristics and accumulation
-- spatial data aggregation and resampling
+-   hydro addressing and network navigation
+-   catchment characteristics and accumulation
+-   spatial data aggregation and resampling
 
 ### First use case walk-through
+
 In R here and in separate notebook for Python
 
 ### Second use case walk-through
+
 In R here and in separate notebook for Python
 
 etc
 
 ## Data access summary -- web services and scalability
-
-
-
-
-
-
-
