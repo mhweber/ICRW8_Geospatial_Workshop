@@ -15,10 +15,10 @@ Housekeeping, introductions
 
 ## Key Concepts Across Both languages
 
-In both R and Python
+In both R and Python:
 
 ### proj, gdal, netcdf, curl
-- Spatial data across languages and applications is primarily organized through [OSgeo](https://www.osgeo.org) and [OGC](https://www.ogc.org)) _and_ a few core libraries underpin spatial libraries in programming languages and in software applications(R, Python, QGIS, ArcPro)!
+- Spatial data structures across languages and applications is primarily organized through [OSgeo](https://www.osgeo.org) and [OGC](https://www.ogc.org)) _and_ a few core libraries underpin spatial libraries in programming languages and in software applications(R, Python, QGIS, ArcPro)!
 
 These libraries include: 
 
@@ -76,8 +76,7 @@ knitr::include_graphics("img/sf_xfig.png")
 
 This extends the idea of ["tidy" data](https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html) in that each row represents one observation, which has one geometric representation of the real world feature it describes.
 
-#### Basic use:
-
+An example of basic use:
 ```{r}
 # Define file path
 (filename <- system.file("shape/nc.shp", package="sf"))
@@ -114,6 +113,21 @@ library(dplyr)
 }
 
 ```
+
+#### terra and stars
+terra drivers and example use
+```{r}
+# install.packages(terra)
+library(terra)
+
+gdal()
+```
+
+```{r}
+DT::datatable(gdal(drivers = TRUE))
+```
+
+
 ## Demonstration of Key Concepts in Each Language
 
 -   drainage basins and catchments - mainstems and flowpaths
@@ -142,3 +156,19 @@ In R here and in separate notebook for Python
 etc
 
 ## Data access summary -- web services and scalability
+
+
+## Resources
+### R
+[Spatial Data Science by Edzar Pebesma and Roger Bivand](https://r-spatial.org/book/)
+
+[Geocomputation with R](https://r.geocompx.org/)
+
+### Python
+[GeoPandas](https://geopandas.org/en/stable/index.html)
+
+[Python Foundation for Spatial Analysis](https://courses.spatialthoughts.com/python-foundation.html)
+
+[Python for Geographic Data Analysis](https://pythongis.org/index.html)
+
+  
