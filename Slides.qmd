@@ -1,12 +1,15 @@
 ---
 title: "Introduction"
-format: html
+format: 
+  html:
+    code-link: true
+    code-fold: true
 editor: visual
 date: 2023-06-05
 toc: true
+toc-depth: 4
 toc-location: left
 self-contained: true
-html: true
 ---
 
 ## Introduction
@@ -37,11 +40,14 @@ These libraries include:
 ```{r, fig.align='center', echo = FALSE, out.width="75%" }
 knitr::include_graphics("img/09-vec-raster.jpg")
 ```
+
 Simple Features (officially Simple Feature Access) is both an OGC and International Organization for Standardization (ISO) standard that specifies how (mostly) two-dimensional geometries can represent and describe objects in the real world. 
 
 It describes how such objects can be stored in and retrieved from databases, and which geometrical operations should be defined for them.
 
 It outlines how the spatial elements of POINTS (XY locations with a specific coordinate reference system) extend to LINES, POLYGONS and GEOMETRYCOLLECTION(s).
+
+The “simple” adjective also refers to the fact that the line or polygon geometries are represented by sequences of points connected with straight lines that do not self-intersect.
 
 ```{r, fig.align='center', echo = FALSE, out.width="75%" }
 knitr::include_graphics("img/09-sf-model.png")
@@ -54,6 +60,7 @@ In R, the [`sf` package](https://cran.r-project.org/web/packages/sf/index.html) 
 Therefore when using R, you are using an interface to the core community standards, software, and practices (this is no exclusive to R). TO highlight this we can install (do this once) and attach `sf` to view the external dependencies versions of the libraries linked to `sf`. 
 
 ```{r}
+#| message: false
 # install.packages("sf")
 library(sf)
 
@@ -72,6 +79,60 @@ In practice, an `sf` object in R looks like the following:
 
 ```{r, fig.align='center', echo = FALSE, out.width="75%" }
 knitr::include_graphics("img/sf_xfig.png")
+```
+
+```{r}
+library(sf) |> suppressPackageStartupMessages()
+par(mfrow = c(2,4))
+par(mar = c(1,1,1.2,1))
+
+# 1
+p <- st_point(0:1)
+plot(p, pch = 16)
+title("point")
+box(col = 'grey')
+
+# 2
+mp <- st_multipoint(rbind(c(1,1), c(2, 2), c(4, 1), c(2, 3), c(1,4)))
+plot(mp, pch = 16)
+title("multipoint")
+box(col = 'grey')
+
+# 3
+ls <- st_linestring(rbind(c(1,1), c(5,5), c(5, 6), c(4, 6), c(3, 4), c(2, 3)))
+plot(ls, lwd = 2)
+title("linestring")
+box(col = 'grey')
+
+# 4
+mls <- st_multilinestring(list(
+  rbind(c(1,1), c(5,5), c(5, 6), c(4, 6), c(3, 4), c(2, 3)),
+  rbind(c(3,0), c(4,1), c(2,1))))
+plot(mls, lwd = 2)
+title("multilinestring")
+box(col = 'grey')
+
+# 5 polygon
+po <- st_polygon(list(rbind(c(2,1), c(3,1), c(5,2), c(6,3), c(5,3), c(4,4), c(3,4), c(1,3), c(2,1)),
+    rbind(c(2,2), c(3,3), c(4,3), c(4,2), c(2,2))))
+plot(po, border = 'black', col = '#ff8888', lwd = 2)
+title("polygon")
+box(col = 'grey')
+
+# 6 multipolygon
+mpo <- st_multipolygon(list(
+    list(rbind(c(2,1), c(3,1), c(5,2), c(6,3), c(5,3), c(4,4), c(3,4), c(1,3), c(2,1)),
+        rbind(c(2,2), c(3,3), c(4,3), c(4,2), c(2,2))),
+    list(rbind(c(3,7), c(4,7), c(5,8), c(3,9), c(2,8), c(3,7)))))
+plot(mpo, border = 'black', col = '#ff8888', lwd = 2)
+title("multipolygon")
+box(col = 'grey')
+
+# 7 geometrycollection
+gc <- st_geometrycollection(list(po, ls + c(0,5), st_point(c(2,5)), st_point(c(5,4))))
+plot(gc, border = 'black', col = '#ff6666', pch = 16, lwd = 2)
+title("geometrycollection")
+box(col = 'grey')
 ```
 
 This extends the idea of ["tidy" data](https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html) in that each row represents one observation, which has one geometric representation of the real world feature it describes.
