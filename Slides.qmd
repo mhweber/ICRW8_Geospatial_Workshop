@@ -2,14 +2,15 @@
 title: "Introduction"
 format: 
   html:
+    toc: true
+    toc-depth: 4
+    toc-location: left
+    self-contained: true
     code-link: true
     code-fold: true
 editor: visual
 date: 2023-06-05
-toc: true
-toc-depth: 4
-toc-location: left
-self-contained: true
+
 ---
 
 ## Introduction
