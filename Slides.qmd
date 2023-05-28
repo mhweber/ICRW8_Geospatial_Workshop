@@ -277,7 +277,7 @@ plot(point, cex = 2, lwd = 2, add = TRUE)
 
 ```
 
-The ability to navigate up or down a mainstem rather than all connected tributaries and diversions, requires some attributes that identify primary up and downstream paths. Without those paths, navigation is still possible but the "main" path navigation method is not. Below, a new function, `navigate_network_dfs()` is shown. 
+The ability to navigate up or down a mainstem rather than all connected tributaries and diversions, requires some attributes that identify primary up and downstream paths. Without those paths, navigation is still possible but the "main" path navigation method is not. Below, a new function available in `hydroloom`, `navigate_network_dfs()` is shown. 
 
 ```{r}
 net <- hydroloom::add_toids(sf::st_drop_geometry(fline), 
@@ -296,7 +296,55 @@ In R here and in separate notebook for Python
 
 ### Catchment Characteristics and Accumulation
 
+[`nhdplusTools`](https://doi-usgs.github.io/nhdplusTools) (only in the latest `hydroloom` branch) and [`StreamCatTools`](https://usepa.github.io/StreamCatTools) can be used to retrieve a wide range of catchment characteristics.
 
+```{r}
+cat <- sf::st_transform(new_hope_catchment, 4326)
+
+streamcat_chars <- StreamCatTools::sc_get_params(param='name')
+
+nawqa_chars <- nhdplusTools::get_characteristics_metadata()
+
+StreamCatTools::sc_fullname("pctimp2016")
+
+nawqa_chars$description[nawqa_chars$ID == "CAT_TWI"]
+
+twi <- nhdplusTools::get_catchment_characteristics("CAT_TWI", cat$FEATUREID)
+
+twi <- dplyr::rename(twi, CAT_TWI = "characteristic_value")
+
+imp <- StreamCatTools::sc_get_data("pctimp2016", 'catchment', cat$FEATUREID)
+
+cat <- dplyr::left_join(cat, imp, by = c("FEATUREID" = "COMID")) |>
+  dplyr::left_join(twi, by = c("FEATUREID" = "comid"))
+
+plot(cat['CAT_TWI'])
+plot(cat['PCTIMP2016CAT'])
+```
+
+With the two catalogs of characteristics above, we have access to nearly any characteristic imaginable and both even offer downstream accumulations of the variables. However, sometimes it is necessary to sample and accumulate data not already available. `nhdplusTools` supports accumulating drainage area and length and `hydroloom`, going forward, supports downstream accumulation more generically. Here, we'll just use one of the examples pulled above to illustrate how this works.
+
+
+
+```{r}
+
+accum_df <- sf::st_drop_geometry(fline) |>
+  select(COMID, FromNode, ToNode, Divergence, AreaSqKM) |>
+  hydroloom::add_toids() |>
+  left_join(select(cat, -AreaSqKM), by = c("COMID" = "FEATUREID")) |>
+  sf::st_sf() |>
+  mutate(area_weighted_PCTIMP2016CAT = 
+           ifelse(is.na(PCTIMP2016CAT) & AreaSqKM == 0, 
+                  yes = 0, no = AreaSqKM * PCTIMP2016CAT))
+
+accum_df <- accum_df |>
+  mutate(tot_PCTIMP2016CAT = 
+           hydroloom::accumulate_downstream(accum_df, "area_weighted_PCTIMP2016CAT") / 
+           hydroloom::accumulate_downstream(accum_df, "AreaSqKM"))
+
+plot(cat['PCTIMP2016CAT'])
+plot(accum_df['tot_PCTIMP2016CAT'])
+```
 
 In R here and in separate notebook for Python
 
