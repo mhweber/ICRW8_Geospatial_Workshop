@@ -2,14 +2,15 @@
 title: "Introduction"
 format: 
   html:
+    toc: true
+    toc-depth: 4
+    toc-location: left
+    self-contained: true
     code-link: true
     code-fold: true
 editor: visual
 date: 2023-06-05
-toc: true
-toc-depth: 4
-toc-location: left
-self-contained: true
+
 ---
 
 ## Introduction
@@ -20,8 +21,6 @@ Housekeeping, introductions
 
 In both R and Python:
 
-### proj, gdal, netcdf, curl
-
 -   Spatial data structures across languages and applications is primarily organized through [OSgeo](https://www.osgeo.org) and [OGC](https://www.ogc.org)) *and* a few core libraries underpin spatial libraries in programming languages and in software applications(R, Python, QGIS, ArcPro)!
 
 These libraries include:
@@ -31,6 +30,31 @@ These libraries include:
 -   **GEOS** --\> Geometry operations (measures, relations)
 
 -   **GDAL** --\> geodata abstraction and processing (read, write)
+
+### netcdf
+
+### requesting web services (APIs)
+More and more data is available as web services, and the data is stored in a remote server in JSON, XML, HTML format which is accessible through API’s.
+
+**JSON** (JavaScript Object Notation) is a lightweight data-interchange format which is easy for machines to generate and parse; easy for humans to write and read.
+
+Sample JSON format :
+{ “data”: “Click Here”, “size”: 36, “style”: “bold”, “name”: “text1”, }
+
+**API** - An Application Programming Interface (API) takes a structured request from an application and returns structured results from the host application. With a **Rest API** you're getting a representation of the requested data stored in a server. A **Rest API** also is what we call 'stateless', which means a server doesn't store any data between requests from clients.
+
+**Rest APIs** access data through **uniform resource identifiers (URIs)**, which are essentially a string of characters that identify a specific resource. The type of URI used by a **Rest API** is a **uniform resource locator (URL)**.
+
+**HTTP** clients are used for accessing the API. **HyperText Transfer Protocol (HTTP)** enables communication between the client and server using **HTTP** methods. If we want to access or manipulate resources a **Rest API** uses specific request verbs we need to become familiar with:
+
+- GET: used to acquire data from a database
+
+- POST: used to add data to a database
+
+- PUT: update the data in a database
+
+- DELETE: delete data in a database
+
 
 ### drainage basins and catchments - mainstems and flowpaths
 
@@ -212,9 +236,8 @@ library(dplyr)
 
 ```
 
-#### terra and stars
-
-terra drivers and example use
+#### terra and stars 
+For accessing raster data - first look at terra:
 
 ```{r}
 # install.packages(terra)
@@ -225,6 +248,95 @@ gdal()
 
 ```{r}
 DT::datatable(gdal(drivers = TRUE))
+```
+
+#### httr and jsonlite
+In R, httr and jsonlite packages are used to consume the API’s that provide data in json format.
+
+**httr**
+httr provides us with an HTTP client to access the API with GET/POST methods, passing query parameters, and verifying the response with regard to the data format.
+
+**jsonlite**
+This R package is used to convert the received json format to readable R object or data frame. `jsonlite` can also be used to convert R objects or a data frame to a json format data type.
+
+Along with these two packages, `rlist` in R can be used to perform additional manipulation on the received json response. `list.stack` and `list.select` are two important methods exposed by `rlist` that can be used to get parsed json data into a `tibble`.
+
+To learn about these (and other) packages, type `?httr`, `?jsonlite` and `?rlist` in the console of Rstudio to view the documentation.
+
+Here we see an example using a JSON API from the world bank that uses a GET request below - we can see a couple ways of passing request parameters - first we'll embed the query directly in the URL for the request itself:
+```{r}
+#| message: false
+#| warning: false
+library(httr) 
+library(jsonlite) 
+library(rlist) 
+library(dplyr)
+library(data.table)
+
+jsonResponse <- httr::GET("http://api.worldbank.org/country?per_page=10&region=OED&lendingtype=LNX&format=json")
+```
+
+We can also generate the query by passing it in a separate list we create and adding as a query parameter in the GET request
+```{r}
+query<-list(per_page="10",region="OED",lendingtype="LNX",format="json")
+jsonResponse <- httr::GET("http://api.worldbank.org/country",query=query)
+```
+
+The `jsonlite` package can be used to parse our response which we indicated above to return as json.  Why does the attempt below return an error?
+```{r}
+#| eval: false
+#| warning: false
+df <- jsonlite::fromJSON(jsonResponse)
+```
+
+HINT: what type of object is `jsonResponse` above?
+
+```{r}
+typeof(jsonResponse)
+```
+We can also get information about the response using `httr`:
+```{r}
+http_type(jsonResponse)
+```
+We have a list - let's take a look to figure out to pull out what we want into a data frame:
+```{r}
+names(jsonResponse)
+```
+
+It seems like `content` is what we want, how do we pull out?
+```{r}
+#| eval: false
+#| warning: false
+df <- jsonlite::fromJSON(jsonResponse$content)
+```
+
+Still doesn't work - we need to do some further parsing of this response using `content` in `httr` which we can then pass to `jsonlite` and the `fromJSON` function to get data into a data frame
+```{r}
+jsonResponseParsed <- httr::content(jsonResponse, as="parsed")
+is.list(jsonResponseParsed)
+names(jsonResponseParsed[[1]])
+names(jsonResponseParsed[[2]])
+#Hmmm
+is.list(jsonResponseParsed[[2]][[1]]) 
+names(jsonResponseParsed[[2]][[1]])
+# now we're getting somewhere...
+names(jsonResponseParsed[[2]][[2]])
+```
+We convert the parsed json response list to data table using `lapply` and `rbindlist`:
+```{r}
+df <- lapply(jsonResponseParsed[[2]],as.data.table) 
+typeof(df) # still a list - one more step
+dt <- rbindlist(df, fill = TRUE)
+```
+
+Some APIs like [GitHub]("https://api.github.com") are easier to pull directly into a dataframe using `fromJSON`
+```{r}
+myGitHubRepos <- fromJSON("https://api.github.com/users/mhweber/repos")
+
+# It returns 79 variables about my repos - we can use select to just get the ones we want to see
+myGitHubRepos <- myGitHubRepos |> 
+  dplyr::select(name, stargazers_count, watchers_count, language, has_issues, forks_count)
+head(myGitHubRepos)
 ```
 
 ### Examples in Python (will be in a separate notebook in binder)
@@ -355,11 +467,14 @@ etc
 ## Resources
 
 ### R
-
+#### Spatial Data
 [Spatial Data Science by Edzar Pebesma and Roger Bivand](https://r-spatial.org/book/)
 
 [Geocomputation with R](https://r.geocompx.org/)
 
+#### Web Services
+[Accessing REST API (JSON data) using httr and jsonlite](https://rstudio-pubs-static.s3.amazonaws.com/480665_ba2655419209496dbb799f1c7d050673.html
+)
 ### Python
 
 [GeoPandas](https://geopandas.org/en/stable/index.html)
