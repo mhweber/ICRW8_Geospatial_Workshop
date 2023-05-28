@@ -25,13 +25,13 @@ In both R and Python:
 
 These libraries include:
 
--   **PROJ** --\> projections, transformations
+-   **PROJ** --\> Spatial projections, transformations
 
 -   **GEOS** --\> Geometry operations (measures, relations)
 
--   **GDAL** --\> geodata abstraction and processing (read, write)
+-   **GDAL** --\> Raster and feature abstraction and processing (read, write)
 
-### netcdf
+-   **NetCDF** --\> Multidimensional (XYZT) data abstraction (read, write)
 
 ### requesting web services (APIs)
 More and more data is available as web services, and the data is stored in a remote server in JSON, XML, HTML format which is accessible through API’s.
@@ -58,6 +58,50 @@ Sample JSON format :
 
 ### drainage basins and catchments - mainstems and flowpaths
 
+When writing software for hydrologic data, concrete conceptual and logical definitions for the spatial features our software works with are critical to enabling interoperability. Along these lines, some key definitions to consider:
+
+- **Catchment**: A physiographic unit with zero or one inlets and one outlet. A catchment is represented by one or more partial realizations; flowpath, divide, and networks of flowpaths and divides.
+- **Nexus**: Conceptual outlet for water contained by a catchment. The hydro nexus concept represents the place where a catchment interacts with another catchment.
+- **Flowpath**: A flowpath is a linear geometry that represents the connection between a catchment’s inlet and its outlet. All flowpaths have a local drainage area and may be aggregates of flowlines.
+- **Flowline**: A flowline is a linear geometry that represents a segment of a flowing body of water. Some flowlines have no local drainage area and are never aggregate features.
+- **Drainage Basin**: A catchment with zero inlets and one (internal or external) outlet. 
+- **Mainstem**: The flowpath of a drainage basin.
+
+In the following, we create a representation of catchment divides and flowpaths with the hydrologic locations that represent their nexuses. 
+
+**Note:** both the divide and flowpath are said to be realizations of the overall catchment that they represent. In other words, the divide and flowpath are both part of the representation of a catchment.
+
+```{r}
+source(system.file("extdata/new_hope_data.R", package = "nhdplusTools"))
+
+catchment <- sf::st_geometry(new_hope_catchment)
+flowpath <- sf::st_geometry(dplyr::filter(new_hope_flowline, COMID %in% new_hope_catchment$FEATUREID))
+nexus <- sf::st_geometry(nhdplusTools::get_node(flowpath, "end"))
+
+
+plot_window <- sf::st_as_sfc(sf::st_bbox(dplyr::filter(new_hope_catchment, FEATUREID %in% c(8891178, 8895564))))
+
+par(mar = c(0,0,0,0))
+plot(plot_window, col = NA, border = NA)
+plot(catchment, col = NA, border = "grey25", add = TRUE)
+plot(flowpath, col = "dodgerblue3", add = TRUE)
+plot(nexus, col = "springgreen", add = TRUE, pch = 20)
+
+```
+In this example, we create a drainage basin boundary (divide), mainstem flowpath of the drainage basin, and the flowlines that make up the hydrographic network of the drainage basin. 
+
+**Fun Fact:** the word "watershed" has come to refer to the land encompassed by a drainage divide but this usage is not correct. A watershed is "a dividing ridge between drainage areas" which is in line with the non hydrologic use of the word: a crucial dividing point, line, or factor. 
+
+```{r}
+basin <- sf::st_geometry(sf::st_union(new_hope_catchment, by_feature = FALSE))
+flowline <- sf::st_geometry(new_hope_flowline)
+mainstem <- sf::st_geometry(new_hope_flowline[new_hope_flowline$LevelPathI == min(new_hope_flowline$LevelPathI),])
+
+par(mar = c(0,0,0,0))
+plot(basin, lwd = 2) 
+plot(flowline, col = "dodgerblue", add = TRUE)
+plot(mainstem, col = "blue", lwd = 2, add = TRUE)
+```
 ### Geospatial data representation fundamentals, simple features and geospatial grids
 
 -   "Vector" data are comprised of points, lines, and polygons that represent discrete spatial entities, such as a river, watershed, or stream gauge.
@@ -201,10 +245,10 @@ An example of basic use:
 
 ```{r}
 # Define file path
-(filename <- system.file("shape/nc.shp", package="sf"))
+filename <- system.file("shape/nc.shp", package="sf")
 
 # read in file
-(nc <- read_sf(filename) )
+(nc <- read_sf(filename))
 ```
 
 ```{r}
