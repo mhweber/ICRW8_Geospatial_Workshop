@@ -402,6 +402,7 @@ We need two inputs. Lines to index to and points that we want addresses for. Wit
 The example below is as simple as possible. `get_flowline_index()` has a number of other capabilities, such as increased address precision and the ability to return multiple nearby addresses, that can be found in the function documentation. 
 
 ```{r}
+#| warning: false
 source(system.file("extdata/new_hope_data.R", package = "nhdplusTools"))
 
 fline <- sf::st_transform(sf::st_cast(new_hope_flowline, "LINESTRING"), 4326)
@@ -418,7 +419,7 @@ plot(point, add = TRUE)
 A natural next step once we've found a hydro address is to search upstream or downstream from the location we found. [`nhdplusTools`](https://doi-usgs.github.io/nhdplusTools/reference/index.html#network-navigation) and soon [`hydroloom`](https://doi-usgs.github.io/hydroloom/reference/index.html#network-navigation-and-accumulation) offer a few upstream / downstream search functions. Here we'll show a couple from `nhdplusTools`.  
 
 ```{r}
-
+#| warning: false
 up <- nhdplusTools::get_UT(fline, address$COMID)
 um <- nhdplusTools::get_UM(fline, address$COMID)
 dn <- nhdplusTools::get_DD(fline, address$COMID)
@@ -436,7 +437,7 @@ plot(point, cex = 2, lwd = 2, add = TRUE)
 The ability to navigate up or down a mainstem rather than all connected tributaries and diversions, requires some attributes that identify primary up and downstream paths. Without those paths, navigation is still possible but the "main" path navigation method is not. Below, a new function available in `hydroloom`, `navigate_network_dfs()` is shown. 
 
 ```{r}
-# remotes::install_github("doi-usgs/hydroloom")
+#| warning: false
 net <- hydroloom::add_toids(sf::st_drop_geometry(fline), 
                             return_dendritic = FALSE)
 
@@ -456,8 +457,10 @@ In R here and in separate notebook for Python
 [`nhdplusTools`](https://doi-usgs.github.io/nhdplusTools) (only in the latest `hydroloom` branch) and [`StreamCatTools`](https://usepa.github.io/StreamCatTools) can be used to retrieve a wide range of catchment characteristics.
 
 ```{r}
-# remotes::install_github("doi-usgs/nhdplusTools@hydroloom")
+#| warning: false
+# remotes::install_github("DOI-USGS/nhdplusTools@2cb81da")
 library(nhdplusTools)
+nhdplusTools::nhdplusTools_data_dir(tempdir())
 cat <- sf::st_transform(new_hope_catchment, 4326)
 
 streamcat_chars <- StreamCatTools::sc_get_params(param='name')
