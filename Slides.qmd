@@ -436,6 +436,7 @@ plot(point, cex = 2, lwd = 2, add = TRUE)
 The ability to navigate up or down a mainstem rather than all connected tributaries and diversions, requires some attributes that identify primary up and downstream paths. Without those paths, navigation is still possible but the "main" path navigation method is not. Below, a new function available in `hydroloom`, `navigate_network_dfs()` is shown. 
 
 ```{r}
+# remotes::install_github("doi-usgs/hydroloom")
 net <- hydroloom::add_toids(sf::st_drop_geometry(fline), 
                             return_dendritic = FALSE)
 
@@ -455,6 +456,8 @@ In R here and in separate notebook for Python
 [`nhdplusTools`](https://doi-usgs.github.io/nhdplusTools) (only in the latest `hydroloom` branch) and [`StreamCatTools`](https://usepa.github.io/StreamCatTools) can be used to retrieve a wide range of catchment characteristics.
 
 ```{r}
+# remotes::install_github("doi-usgs/nhdplusTools@hydroloom")
+library(nhdplusTools)
 cat <- sf::st_transform(new_hope_catchment, 4326)
 
 streamcat_chars <- StreamCatTools::sc_get_params(param='name')
@@ -519,6 +522,7 @@ etc
 #### Web Services
 [Accessing REST API (JSON data) using httr and jsonlite](https://rstudio-pubs-static.s3.amazonaws.com/480665_ba2655419209496dbb799f1c7d050673.html
 )
+
 ### Python
 
 [GeoPandas](https://geopandas.org/en/stable/index.html)
