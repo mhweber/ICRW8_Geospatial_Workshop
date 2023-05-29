@@ -21,18 +21,17 @@ Housekeeping, introductions
 
 In both R and Python:
 
-### proj, gdal
-- Spatial data structures across languages and applications is primarily organized through [OSgeo](https://www.osgeo.org) and [OGC](https://www.ogc.org)) _and_ a few core libraries underpin spatial libraries in programming languages and in software applications(R, Python, QGIS, ArcPro)!
+-   Spatial data structures across languages and applications is primarily organized through [OSgeo](https://www.osgeo.org) and [OGC](https://www.ogc.org)) *and* a few core libraries underpin spatial libraries in programming languages and in software applications(R, Python, QGIS, ArcPro)!
 
-These libraries include: 
+These libraries include:
 
-  - **PROJ** --> projections, transformations  
-  
-  - **GEOS** --> Geometry operations (measures, relations)
-  
-  - **GDAL** --> geodata abstraction and processing (read, write)
+-   **PROJ** --\> Spatial projections, transformations
 
-### netcdf
+-   **GEOS** --\> Geometry operations (measures, relations)
+
+-   **GDAL** --\> Raster and feature abstraction and processing (read, write)
+
+-   **NetCDF** --\> Multidimensional (XYZT) data abstraction (read, write)
 
 ### requesting web services (APIs)
 More and more data is available as web services, and the data is stored in a remote server in JSON, XML, HTML format which is accessible through API’s.
@@ -59,10 +58,55 @@ Sample JSON format :
 
 ### drainage basins and catchments - mainstems and flowpaths
 
-### Geospatial data representation fundamentals, simple features and geospatial grids
-- "Vector" data are comprised of points, lines, and polygons that represent discrete spatial entities, such as a river, watershed, or stream gauge.
+When writing software for hydrologic data, concrete conceptual and logical definitions for the spatial features our software works with are critical to enabling interoperability. Along these lines, some key definitions to consider:
 
-- "Raster" data divides spaces into rectilinear cells (pixels) to represent spatially continuous phenomena, such as elevation or the weather. The cell size (or resolution) defines the fidelity of the data.
+- **Catchment**: A physiographic unit with zero or one inlets and one outlet. A catchment is represented by one or more partial realizations; flowpath, divide, and networks of flowpaths and divides.
+- **Nexus**: Conceptual outlet for water contained by a catchment. The hydro nexus concept represents the place where a catchment interacts with another catchment.
+- **Flowpath**: A flowpath is a linear geometry that represents the connection between a catchment’s inlet and its outlet. All flowpaths have a local drainage area and may be aggregates of flowlines.
+- **Flowline**: A flowline is a linear geometry that represents a segment of a flowing body of water. Some flowlines have no local drainage area and are never aggregate features.
+- **Drainage Basin**: A catchment with zero inlets and one (internal or external) outlet. 
+- **Mainstem**: The flowpath of a drainage basin.
+
+In the following, we create a representation of catchment divides and flowpaths with the hydrologic locations that represent their nexuses. 
+
+**Note:** both the divide and flowpath are said to be realizations of the overall catchment that they represent. In other words, the divide and flowpath are both part of the representation of a catchment.
+
+```{r}
+source(system.file("extdata/new_hope_data.R", package = "nhdplusTools"))
+
+catchment <- sf::st_geometry(new_hope_catchment)
+flowpath <- sf::st_geometry(dplyr::filter(new_hope_flowline, COMID %in% new_hope_catchment$FEATUREID))
+nexus <- sf::st_geometry(nhdplusTools::get_node(flowpath, "end"))
+
+
+plot_window <- sf::st_as_sfc(sf::st_bbox(dplyr::filter(new_hope_catchment, FEATUREID %in% c(8891178, 8895564))))
+
+par(mar = c(0,0,0,0))
+plot(plot_window, col = NA, border = NA)
+plot(catchment, col = NA, border = "grey25", add = TRUE)
+plot(flowpath, col = "dodgerblue3", add = TRUE)
+plot(nexus, col = "springgreen", add = TRUE, pch = 20)
+
+```
+In this example, we create a drainage basin boundary (divide), mainstem flowpath of the drainage basin, and the flowlines that make up the hydrographic network of the drainage basin. 
+
+**Fun Fact:** the word "watershed" has come to refer to the land encompassed by a drainage divide but this usage is not correct. A watershed is "a dividing ridge between drainage areas" which is in line with the non hydrologic use of the word: a crucial dividing point, line, or factor. 
+
+```{r}
+basin <- sf::st_geometry(sf::st_union(new_hope_catchment, by_feature = FALSE))
+flowline <- sf::st_geometry(new_hope_flowline)
+mainstem <- sf::st_geometry(new_hope_flowline[new_hope_flowline$LevelPathI == min(new_hope_flowline$LevelPathI),])
+
+par(mar = c(0,0,0,0))
+plot(basin, lwd = 2) 
+plot(flowline, col = "dodgerblue", add = TRUE)
+plot(mainstem, col = "blue", lwd = 2, add = TRUE)
+```
+### Geospatial data representation fundamentals, simple features and geospatial grids
+
+-   "Vector" data are comprised of points, lines, and polygons that represent discrete spatial entities, such as a river, watershed, or stream gauge.
+
+-   "Raster" data divides spaces into rectilinear cells (pixels) to represent spatially continuous phenomena, such as elevation or the weather. The cell size (or resolution) defines the fidelity of the data.
 
 ```{r, fig.align='center', echo = FALSE, out.width="75%" }
 knitr::include_graphics("img/09-vec-raster.jpg")
@@ -70,15 +114,15 @@ knitr::include_graphics("img/09-vec-raster.jpg")
 
 Simple Features (officially Simple Feature Access) is both an OGC and International Organization for Standardization (ISO) standard that specifies how (mostly) two-dimensional geometries can represent and describe objects in the real world. Simple features includes:
 
-* a class hierarchy
-* a set of operations
-* binary and text encodings
+-   a class hierarchy
+-   a set of operations
+-   binary and text encodings
 
 It describes how such objects can be stored in and retrieved from databases, and which geometrical operations should be defined for them.
 
 It outlines how the spatial elements of POINTS (XY locations with a specific coordinate reference system) extend to LINES, POLYGONS and GEOMETRYCOLLECTION(s).
 
-The “simple” adjective also refers to the fact that the line or polygon geometries are represented by sequences of points connected with straight lines that do not self-intersect.
+The "simple" adjective also refers to the fact that the line or polygon geometries are represented by sequences of points connected with straight lines that do not self-intersect.
 
 ```{r, fig.align='center', echo = FALSE, out.width="75%" }
 knitr::include_graphics("img/09-sf-model.png")
@@ -90,10 +134,12 @@ knitr::include_graphics("img/09-sf-model.png")
 -   geospatial data representation fundamentals, simple features and geospatial grids
 
 ### Examples in R
-#### sf: simple features
-In R, the [`sf` package](https://cran.r-project.org/web/packages/sf/index.html) provides "_support for simple features, a standardized way to encode spatial vector data.... [and] Binds to 'GDAL' for reading and writing data, to 'GEOS' for geometrical operations, and to 'PROJ' for projection conversions and datum transformations._" 
 
-When using R, you' are're using an interface to the core community standards, software, and practices (this isn't exclusive to R). TO highlight this we can install (do this once) and attach `sf` to view the external dependencies versions of the libraries linked to `sf`. 
+#### sf: simple features
+
+In R, the [`sf` package](https://cran.r-project.org/web/packages/sf/index.html) provides "*support for simple features, a standardized way to encode spatial vector data.... \[and\] Binds to 'GDAL' for reading and writing data, to 'GEOS' for geometrical operations, and to 'PROJ' for projection conversions and datum transformations.*"
+
+When using R, you' are're using an interface to the core community standards, software, and practices (this isn't exclusive to R). TO highlight this we can install (do this once) and attach `sf` to view the external dependencies versions of the libraries linked to `sf`.
 
 ```{r}
 #| message: false
@@ -109,7 +155,7 @@ The bindings to these lower-level C libraries, and, the larger `sf` ecosystem in
 knitr::include_graphics("img/09-sf-depends.png")
 ```
 
-In the `sf` implementation in the R ecosystem stores simple feature geometries (sfg) as part of a larger data.frame using a simple feature geometry list-column (sfg). The collection of attribute and spatial information define a simple feature that can be operated on in both table (SQL) and spatial (GEOS, etc) contexts. Not only does this allow us to make the most use of the growing spatial community but _also_ of the growing data science community (see `ggplot`, `dplyr`, `data.table`, `dbplyr`, `arrow`, etc.)
+In the `sf` implementation in the R ecosystem stores simple feature geometries (sfg) as part of a larger data.frame using a simple feature geometry list-column (sfg). The collection of attribute and spatial information define a simple feature that can be operated on in both table (SQL) and spatial (GEOS, etc) contexts. Not only does this allow us to make the most use of the growing spatial community but *also* of the growing data science community (see `ggplot`, `dplyr`, `data.table`, `dbplyr`, `arrow`, etc.)
 
 In practice, an `sf` object in R looks like the following:
 
@@ -117,20 +163,17 @@ In practice, an `sf` object in R looks like the following:
 knitr::include_graphics("img/sf_xfig.png")
 ```
 
+We can break this down following examples presented in the recently published [Spatial Data Science](https://r-spatial.org/book/03-Geometries.html) by Edzar Pebesma and Rober Bivand. The most common simple feature geometries used to represent a *single* feature are:
 
-We can break this down following examples presented in the recently published [Spatial Data Science](https://r-spatial.org/book/03-Geometries.html) by Edzar Pebesma and Rober Bivand. The most common simple feature geometries used to represent a _single_ feature are:
-
-| type                      | description                                                               |
-|---------------------------|---------------------------------------------------------------------------|
-| `POINT`                   | single point geometry |
-| `MULTIPOINT`              | set of points |
-| `LINESTRING`              | single linestring (two or more points connected by straight lines) |
-| `MULTILINESTRING`         | set of linestrings |
-| `POLYGON`                 | exterior ring with zero or more inner rings, denoting holes |
-| `MULTIPOLYGON`            | set of polygons |
-| `GEOMETRYCOLLECTION`      | set of the geometries above  |
-
-
+| type                 | description                                                        |
+|--------------------|----------------------------------------------------|
+| `POINT`              | single point geometry                                              |
+| `MULTIPOINT`         | set of points                                                      |
+| `LINESTRING`         | single linestring (two or more points connected by straight lines) |
+| `MULTILINESTRING`    | set of linestrings                                                 |
+| `POLYGON`            | exterior ring with zero or more inner rings, denoting holes        |
+| `MULTIPOLYGON`       | set of polygons                                                    |
+| `GEOMETRYCOLLECTION` | set of the geometries above                                        |
 
 ```{r}
 library(sf) |> suppressPackageStartupMessages()
@@ -196,16 +239,16 @@ mpo
 gc
 ```
 
-
 This extends the idea of ["tidy" data](https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html) in that each row represents one observation, which has one geometric representation of the real world feature it describes.
 
 An example of basic use:
+
 ```{r}
 # Define file path
-(filename <- system.file("shape/nc.shp", package="sf"))
+filename <- system.file("shape/nc.shp", package="sf")
 
 # read in file
-(nc <- read_sf(filename) )
+(nc <- read_sf(filename))
 ```
 
 ```{r}
@@ -239,6 +282,7 @@ library(dplyr)
 
 #### terra and stars 
 For accessing raster data - first look at terra:
+
 ```{r}
 # install.packages(terra)
 library(terra)
@@ -349,11 +393,114 @@ head(myGitHubRepos)
 -   catchment characteristics and accumulation
 -   spatial data aggregation and resampling
 
-### First use case walk-through
+### Hydro Addressing
+
+Finding where along a river system some spatial data lies is a key use case for many modeling and analysis tasks. A full discussion is available in the [`nhdplusTools` indexing and referencing vignette.](https://doi-usgs.github.io/nhdplusTools/articles/indexing.html)
+
+We need two inputs. Lines to index to and points that we want addresses for. With these inputs, [`nhdplusTools`](https://doi-usgs.github.io/nhdplusTools/reference/index.html#indexing-and-network-navigation) (and soon [`hydroloom`](https://doi-usgs.github.io/hydroloom/reference/index.html#indexing-and-linear-referencing)) supports generation of hydro addresses with `get_flowline_index()`. 
+
+The example below is as simple as possible. `get_flowline_index()` has a number of other capabilities, such as increased address precision and the ability to return multiple nearby addresses, that can be found in the function documentation. 
+
+```{r}
+source(system.file("extdata/new_hope_data.R", package = "nhdplusTools"))
+
+fline <- sf::st_transform(sf::st_cast(new_hope_flowline, "LINESTRING"), 4326)
+
+point <- sf::st_sfc(sf::st_point(c(-78.97, 35.916)),
+                    crs = 4326)
+
+(address <- nhdplusTools::get_flowline_index(fline, point))
+
+plot(sf::st_geometry(fline[fline$COMID %in% address$COMID,]))
+plot(point, add = TRUE)
+```
+
+A natural next step once we've found a hydro address is to search upstream or downstream from the location we found. [`nhdplusTools`](https://doi-usgs.github.io/nhdplusTools/reference/index.html#network-navigation) and soon [`hydroloom`](https://doi-usgs.github.io/hydroloom/reference/index.html#network-navigation-and-accumulation) offer a few upstream / downstream search functions. Here we'll show a couple from `nhdplusTools`.  
+
+```{r}
+
+up <- nhdplusTools::get_UT(fline, address$COMID)
+um <- nhdplusTools::get_UM(fline, address$COMID)
+dn <- nhdplusTools::get_DD(fline, address$COMID)
+dm <- nhdplusTools::get_DM(fline, address$COMID)
+
+plot(sf::st_geometry(fline), col = "grey", lwd = 0.5)
+plot(sf::st_geometry(fline[fline$COMID %in% c(up, dn),]),
+     add = TRUE)
+plot(sf::st_geometry(fline[fline$COMID %in% c(um, dm),]),
+     col = "blue", lwd = 2, add = TRUE)
+plot(point, cex = 2, lwd = 2, add = TRUE)
+
+```
+
+The ability to navigate up or down a mainstem rather than all connected tributaries and diversions, requires some attributes that identify primary up and downstream paths. Without those paths, navigation is still possible but the "main" path navigation method is not. Below, a new function available in `hydroloom`, `navigate_network_dfs()` is shown. 
+
+```{r}
+net <- hydroloom::add_toids(sf::st_drop_geometry(fline), 
+                            return_dendritic = FALSE)
+
+up <- hydroloom::navigate_network_dfs(net, address$COMID, direction = "up")
+dn <- hydroloom::navigate_network_dfs(net, address$COMID, direction = "dn")
+
+plot(sf::st_geometry(fline), col = "grey", lwd = 0.5)
+plot(sf::st_geometry(fline[fline$COMID %in% c(unlist(up), unlist(dn)),]),
+     add = TRUE)
+plot(point, cex = 2, lwd = 2, add = TRUE)
+```
 
 In R here and in separate notebook for Python
 
-### Second use case walk-through
+### Catchment Characteristics and Accumulation
+
+[`nhdplusTools`](https://doi-usgs.github.io/nhdplusTools) (only in the latest `hydroloom` branch) and [`StreamCatTools`](https://usepa.github.io/StreamCatTools) can be used to retrieve a wide range of catchment characteristics.
+
+```{r}
+cat <- sf::st_transform(new_hope_catchment, 4326)
+
+streamcat_chars <- StreamCatTools::sc_get_params(param='name')
+
+nawqa_chars <- nhdplusTools::get_characteristics_metadata()
+
+StreamCatTools::sc_fullname("pctimp2016")
+
+nawqa_chars$description[nawqa_chars$ID == "CAT_TWI"]
+
+twi <- nhdplusTools::get_catchment_characteristics("CAT_TWI", cat$FEATUREID)
+
+twi <- dplyr::rename(twi, CAT_TWI = "characteristic_value")
+
+imp <- StreamCatTools::sc_get_data("pctimp2016", 'catchment', cat$FEATUREID)
+
+cat <- dplyr::left_join(cat, imp, by = c("FEATUREID" = "COMID")) |>
+  dplyr::left_join(twi, by = c("FEATUREID" = "comid"))
+
+plot(cat['CAT_TWI'])
+plot(cat['PCTIMP2016CAT'])
+```
+
+With the two catalogs of characteristics above, we have access to nearly any characteristic imaginable and both even offer downstream accumulations of the variables. However, sometimes it is necessary to sample and accumulate data not already available. `nhdplusTools` supports accumulating drainage area and length and `hydroloom`, going forward, supports downstream accumulation more generically. Here, we'll just use one of the examples pulled above to illustrate how this works.
+
+
+
+```{r}
+
+accum_df <- sf::st_drop_geometry(fline) |>
+  select(COMID, FromNode, ToNode, Divergence, AreaSqKM) |>
+  hydroloom::add_toids() |>
+  left_join(select(cat, -AreaSqKM), by = c("COMID" = "FEATUREID")) |>
+  sf::st_sf() |>
+  mutate(area_weighted_PCTIMP2016CAT = 
+           ifelse(is.na(PCTIMP2016CAT) & AreaSqKM == 0, 
+                  yes = 0, no = AreaSqKM * PCTIMP2016CAT))
+
+accum_df <- accum_df |>
+  mutate(tot_PCTIMP2016CAT = 
+           hydroloom::accumulate_downstream(accum_df, "area_weighted_PCTIMP2016CAT") / 
+           hydroloom::accumulate_downstream(accum_df, "AreaSqKM"))
+
+plot(cat['PCTIMP2016CAT'])
+plot(accum_df['tot_PCTIMP2016CAT'])
+```
 
 In R here and in separate notebook for Python
 
@@ -361,8 +508,8 @@ etc
 
 ## Data access summary -- web services and scalability
 
-
 ## Resources
+
 ### R
 #### Spatial Data
 [Spatial Data Science by Edzar Pebesma and Roger Bivand](https://r-spatial.org/book/)
@@ -373,10 +520,9 @@ etc
 [Accessing REST API (JSON data) using httr and jsonlite](https://rstudio-pubs-static.s3.amazonaws.com/480665_ba2655419209496dbb799f1c7d050673.html
 )
 ### Python
+
 [GeoPandas](https://geopandas.org/en/stable/index.html)
 
 [Python Foundation for Spatial Analysis](https://courses.spatialthoughts.com/python-foundation.html)
 
 [Python for Geographic Data Analysis](https://pythongis.org/index.html)
-
-  
