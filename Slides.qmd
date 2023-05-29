@@ -526,3 +526,8 @@ etc
 [Python Foundation for Spatial Analysis](https://courses.spatialthoughts.com/python-foundation.html)
 
 [Python for Geographic Data Analysis](https://pythongis.org/index.html)
+
+[gdptools](https://gdptools.readthedocs.io/en/latest/)
+A Python package for grid- or polygon-polygon area-weighted interpolation statistics
+
+[Intro to Python GIS](https://automating-gis-processes.github.io/CSC18/lessons/L2/geopandas-basics.html)
