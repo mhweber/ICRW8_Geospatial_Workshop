@@ -19,7 +19,7 @@ Housekeeping, introductions
 
 ## Key Concepts Across Both languages
 
-In both R and Python:
+### Core Libraries:
 
 -   Spatial data structures across languages and applications is primarily organized through [OSgeo](https://www.osgeo.org) and [OGC](https://www.ogc.org)) *and* a few core libraries underpin spatial libraries in programming languages and in software applications(R, Python, QGIS, ArcPro)!
 
@@ -33,7 +33,7 @@ These libraries include:
 
 -   **NetCDF** --\> Multidimensional (XYZT) data abstraction (read, write)
 
-### requesting web services (APIs)
+### Requesting web services (APIs)
 More and more data is available as web services, and the data is stored in a remote server in JSON, XML, HTML format which is accessible through API’s.
 
 **JSON** (JavaScript Object Notation) is a lightweight data-interchange format which is easy for machines to generate and parse; easy for humans to write and read.
@@ -56,7 +56,130 @@ Sample JSON format :
 - DELETE: delete data in a database
 
 
-### drainage basins and catchments - mainstems and flowpaths
+### Geospatial data representation fundamentals: simple features and geospatial grids
+
+- *"**Vector** data are comprised of points, lines, and polygons that represent discrete spatial entities, such as a river, watershed, or stream gauge.
+
+- **Raster** data divides spaces into rectilinear cells (pixels) to represent spatially continuous phenomena, such as elevation or the weather. The cell size (or resolution) defines the fidelity of the data.
+
+```{r, fig.align='center', echo = FALSE, out.width="75%" }
+knitr::include_graphics("img/09-vec-raster.jpg")
+```
+
+For *Vector* data Simple Features (officially Simple Feature Access) is both an OGC and International Organization for Standardization (ISO) standard that specifies how (mostly) two-dimensional geometries can represent and describe objects in the real world. Simple features includes:
+
+-   a class hierarchy
+-   a set of operations
+-   binary and text encodings
+
+It describes how such objects can be stored in and retrieved from databases, and which geometrical operations should be defined for them.
+
+It outlines how the spatial elements of POINTS (XY locations with a specific coordinate reference system) extend to LINES, POLYGONS and GEOMETRYCOLLECTION(s).
+
+The "simple" adjective also refers to the fact that the line or polygon geometries are represented by sequences of points connected with straight lines that do not self-intersect.
+
+```{r, fig.align='center', echo = FALSE, out.width="75%" }
+knitr::include_graphics("img/09-sf-model.png")
+```
+
+#### Simple and valid geometries and ring direction
+This breakdown of simple features follows for the most part [this section in Spatial Data Science](https://r-spatial.org/book/03-Geometries.html)
+For *linestrings* to be considered *simple* they must not self-intersect:
+
+```{r}
+library(sf)
+(ls <- st_linestring(rbind(c(0,0), c(1,1), c(2,2), c(0,2), c(1,1), c(2,0))))
+```
+```{r}
+#| message: false
+#| echo: false
+#| error: false
+plot(ls)
+```
+
+```{r}
+#| message: false
+#| echo: false
+#| error: false
+c(is_simple = st_is_simple(ls))
+```
+
+For *polygons* several other conditions have to be met to be *simple*:
+
+- polygon rings are closed (the last point equals the first)
+- polygon holes (inner rings) are inside their exterior ring
+- polygon inner rings maximally touch the exterior ring in single points, not over a line
+- a polygon ring does not repeat its own path
+- in a multi-polygon, an external ring maximally touches another exterior ring in single points, not over a line
+
+*z* and *m* coordinates
+As well as having the necessary X and Y coordinates, single point (vertex) simple features can have:
+
+- a Z coordinate, denoting altitude, and/or
+- an M value, denoting some “measure”
+
+**Text and binary encodings**
+A key part of the standard feature encoding is **text** and **binary** encodings.  The well-known text (WKT) encoding we have shown above gives us a human-readable description of the geometry.  The well-known binary (WKB) encoding is machine-readable, lossless, and faster to work with than text encoding.  WKB is used for all interactions with `GDAL` and `GEOS`.
+
+**Operations on geometries**
+We can break down operations on geometries for *vector* features in the following way:
+
+* **predicates**: a logical asserting a certain property is `TRUE`
+* **measures**: a quantity (a numeric value, possibly with measurement unit)
+* **transformations**: newly generated geometries
+
+We can look at these operations by **what** they operate on, whether the are single geometries, pairs, or sets of geometries:
+
+* **unary** when it's a single geometry
+* **binary** when it's pairs of geometries
+* **n-ary** when it's sets of geometries
+
+**Unary** predicates work to describe a property of a geometry.
+
+A list of unary predicates:
+
+|predicate                     |meaning                                                          
+|------------------------------|------------------------------------------------
+|`is`                           |Tests if geometry belongs to a particular class
+|`is_simple`                    |Tests whether geometry is simple
+|`is_valid`                     |Test whether geometry is valid 
+|`is_empty`                     |Tests if geometry is empty
+
+
+A list of binary predicates is:
+
+|predicate                     |meaning                                                          |inverse of      |
+|------------------------------|-----------------------------------------------------------------|----------------|
+|`contains`                    |None of the points of A are outside B| `within`|
+|`contains_properly`           |A contains B and B has no points in common with the boundary of A| |
+|`covers`                      |No points of B lie in the exterior of A| `covered_by`|
+|`covered_by`                  |Inverse of `covers`| |
+|`crosses`                     |A and B have some but not all interior points in common| |
+|`disjoint`                    |A and B have no points in common| `intersects`|
+|`equals`                      |A and B are topologically equal: node order or number of nodes may differ; identical to A contains B and A within B|
+|`equals_exact`                |A and B are geometrically equal, and have identical node order| |
+|`intersects`                  |A and B are not disjoint| `disjoint`|
+|`is_within_distance`          |A is closer to B than a given distance|
+|`within`                      |None of the points of B are outside A| `contains`|
+|`touches`                     |A and B have at least one boundary point in common, but no interior points|  |
+|`overlaps`                    |A and B have some points in common; the dimension of these is identical to that of A and B|  |
+|`relate`                      |Given a mask pattern, return whether A and B adhere to this pattern| |
+
+See the [Geometries chapter of Spatial Data Science](https://r-spatial.org/book/03-Geometries.html) for a full treatment that also covers **unary and binary measures* as well as *unary, binary and n-ary transformers* 
+
+#### Raster data model
+You can read the [GDAL raster data model](https://gdal.org/user/raster_data_model.html) and [OpenGIS Grid Coverages specification](https://docs.geotools.org/stable/javadocs/org/opengis/coverage/grid/package-summary.html) but with a raster data model (a cell-based tesselation) you can read / write and operate on raster data in numerous formats using **gdal**:
+
+```{r}
+#| message: false
+#| echo: false
+#| error: false
+library(terra)
+
+DT::datatable(gdal(drivers = TRUE))
+```
+
+### Drainage basins and catchments - mainstems and flowpaths
 
 When writing software for hydrologic data, concrete conceptual and logical definitions for the spatial features our software works with are critical to enabling interoperability. Along these lines, some key definitions to consider:
 
@@ -101,31 +224,6 @@ par(mar = c(0,0,0,0))
 plot(basin, lwd = 2) 
 plot(flowline, col = "dodgerblue", add = TRUE)
 plot(mainstem, col = "blue", lwd = 2, add = TRUE)
-```
-### Geospatial data representation fundamentals, simple features and geospatial grids
-
--   "Vector" data are comprised of points, lines, and polygons that represent discrete spatial entities, such as a river, watershed, or stream gauge.
-
--   "Raster" data divides spaces into rectilinear cells (pixels) to represent spatially continuous phenomena, such as elevation or the weather. The cell size (or resolution) defines the fidelity of the data.
-
-```{r, fig.align='center', echo = FALSE, out.width="75%" }
-knitr::include_graphics("img/09-vec-raster.jpg")
-```
-
-Simple Features (officially Simple Feature Access) is both an OGC and International Organization for Standardization (ISO) standard that specifies how (mostly) two-dimensional geometries can represent and describe objects in the real world. Simple features includes:
-
--   a class hierarchy
--   a set of operations
--   binary and text encodings
-
-It describes how such objects can be stored in and retrieved from databases, and which geometrical operations should be defined for them.
-
-It outlines how the spatial elements of POINTS (XY locations with a specific coordinate reference system) extend to LINES, POLYGONS and GEOMETRYCOLLECTION(s).
-
-The "simple" adjective also refers to the fact that the line or polygon geometries are represented by sequences of points connected with straight lines that do not self-intersect.
-
-```{r, fig.align='center', echo = FALSE, out.width="75%" }
-knitr::include_graphics("img/09-sf-model.png")
 ```
 
 ## Demonstration of Key Concepts in Each Language
@@ -412,9 +510,10 @@ point <- sf::st_sfc(sf::st_point(c(-78.97, 35.916)),
 
 (address <- nhdplusTools::get_flowline_index(fline, point))
 
-plot(sf::st_geometry(fline[fline$COMID %in% address$COMID,]))
-plot(point, add = TRUE)
+plot(sf::st_geometry(fline[fline$COMID %in% address$COMID,]))+
+  plot(point, add = TRUE)
 ```
+
 
 A natural next step once we've found a hydro address is to search upstream or downstream from the location we found. [`nhdplusTools`](https://doi-usgs.github.io/nhdplusTools/reference/index.html#network-navigation) and soon [`hydroloom`](https://doi-usgs.github.io/hydroloom/reference/index.html#network-navigation-and-accumulation) offer a few upstream / downstream search functions. Here we'll show a couple from `nhdplusTools`.  
 
@@ -465,22 +564,22 @@ cat <- sf::st_transform(new_hope_catchment, 4326)
 
 streamcat_chars <- StreamCatTools::sc_get_params(param='name')
 
-nawqa_chars <- nhdplusTools::get_characteristics_metadata()
+# nawqa_chars <- nhdplusTools::get_characteristics_metadata()
 
 StreamCatTools::sc_fullname("pctimp2016")
 
-nawqa_chars$description[nawqa_chars$ID == "CAT_TWI"]
+# nawqa_chars$description[nawqa_chars$ID == "CAT_TWI"]
 
-twi <- nhdplusTools::get_catchment_characteristics("CAT_TWI", cat$FEATUREID)
+# twi <- nhdplusTools::get_catchment_characteristics("CAT_TWI", cat$FEATUREID)
 
-twi <- dplyr::rename(twi, CAT_TWI = "characteristic_value")
+# twi <- dplyr::rename(twi, CAT_TWI = "characteristic_value")
 
 imp <- StreamCatTools::sc_get_data("pctimp2016", 'catchment', cat$FEATUREID)
 
-cat <- dplyr::left_join(cat, imp, by = c("FEATUREID" = "COMID")) |>
-  dplyr::left_join(twi, by = c("FEATUREID" = "comid"))
+cat <- dplyr::left_join(cat, imp, by = c("FEATUREID" = "COMID")) 
+  # dplyr::left_join(twi, by = c("FEATUREID" = "comid"))
 
-plot(cat['CAT_TWI'])
+# plot(cat['CAT_TWI'])
 plot(cat['PCTIMP2016CAT'])
 ```
 
@@ -513,6 +612,21 @@ In R here and in separate notebook for Python
 etc
 
 ## Data access summary -- web services and scalability
+
+## [Reticulate](https://rstudio.github.io/reticulate/index.html)
+```{r}
+library(reticulate)
+py_config()
+Sys.setenv(PATH= paste("C:/Users/mweber/AppData/Local/miniforge3/envs/test/Library/bin",Sys.getenv()["PATH"],sep=";"))
+Sys.setenv(RETICULATE_PYTHON = "C:/Users/mweber/AppData/Local/miniforge3/envs/test/python.exee")
+use_condaenv("C:/Users/mweber/AppData/Local/miniforge3/envs/test")
+library(reticulate)
+
+py_config()
+
+np <- import("numpy")
+print(np$version$full_version)
+```
 
 ## Resources
 
