@@ -14,3 +14,7 @@ LaTeX: pdfLaTeX
 
 AutoAppendNewline: Yes
 StripTrailingWhitespace: Yes
+
+PythonType: conda
+PythonVersion: 3.9.0
+PythonPath: C:/Users/mweber/AppData/Local/miniforge3/envs/test/python.exe
