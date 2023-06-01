@@ -19,7 +19,7 @@ Housekeeping, introductions
 
 ## Key Concepts Across Both languages
 
-### Core Libraries:
+### Core Libraries    
 
 -   Spatial data structures across languages and applications is primarily organized through [OSgeo](https://www.osgeo.org) and [OGC](https://www.ogc.org)) *and* a few core libraries underpin spatial libraries in programming languages and in software applications(R, Python, QGIS, ArcPro)!
 
@@ -58,7 +58,7 @@ Sample JSON format :
 
 ### Geospatial data representation fundamentals: simple features and geospatial grids
 
-- *"**Vector** data are comprised of points, lines, and polygons that represent discrete spatial entities, such as a river, watershed, or stream gauge.
+- ***Vector** data are comprised of points, lines, and polygons that represent discrete spatial entities, such as a river, watershed, or stream gauge.
 
 - **Raster** data divides spaces into rectilinear cells (pixels) to represent spatially continuous phenomena, such as elevation or the weather. The cell size (or resolution) defines the fidelity of the data.
 
@@ -378,6 +378,45 @@ library(dplyr)
 
 ```
 
+#### Measure (GEOS Measures)
+Measures are the questions we ask about the dimension of a geometry, once a coordinate reference system has been established and we can compute:
+- How long is a line or polygon perimeter? (unit)
+- What is the area of a polygon? *(unit^2)
+- How far are two objects from one another? (unit)
+
+- *Measures* come from the GEOS library
+- *Measures* are calculated in the **units** of the projection
+
+We'll demonstrate with a toy dataset of USGS gages in a data package from a previous workshop:
+```{r}
+gages <- read.csv(system.file("extdata", "Gages_flowdata.csv", package = "awra2020spatial")) |> 
+  dplyr::select(SOURCE_FEA, STATE, LAT_SITE, LON_SITE)
+```
+
+```{r, echo = FALSE}
+dplyr::glimpse(gages)
+```
+Using `st_as_sf` in `sf` we can easily make a data frame with coordinates into a simple features data frame
+```{r}
+gages <- gages |> 
+  sf::st_as_sf(coords = c("LON_SITE", "LAT_SITE"), crs = 4269)
+```
+
+```{r,  echo = FALSE}
+dplyr::glimpse(gages)
+```
+What is the distance from the first stream gage to the second stream gage?
+```{r}
+sf::st_distance(gages[1,], gages[2,])
+```
+We can generate toy area by buffering a point (to make a polygon) and find area and perimeter.  We need to project into a planar CRS to get perimeter so we will project to an Albers projection using an `epsg` code:
+```{r}
+poly <- sf::st_buffer(gages[1,],200)
+sf::st_area(poly)
+poly <- sf::st_transform(poly, 5070)
+lwgeom::st_perimeter(poly)
+```
+
 #### terra and stars 
 For accessing raster data - first look at terra:
 
@@ -411,7 +450,6 @@ Here we see an example using a JSON API from the world bank that uses a GET requ
 #| warning: false
 library(httr) 
 library(jsonlite) 
-library(rlist) 
 library(dplyr)
 library(data.table)
 
@@ -484,12 +522,6 @@ head(myGitHubRepos)
 ### Examples in Python (will be in a separate notebook in binder)
 
 ## Use Cases
-
-### First show how satisfied?
-
--   hydro addressing and network navigation
--   catchment characteristics and accumulation
--   spatial data aggregation and resampling
 
 ### Hydro Addressing
 
