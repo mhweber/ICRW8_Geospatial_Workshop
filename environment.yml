@@ -104,13 +104,13 @@ dependencies:
 # optional deps for speeding up some operations
 - bottleneck
 
- - pip
- - pip:
-   - git+https://github.com/cheginit/async_retriever.git
-   - git+https://github.com/cheginit/pygeoogc.git
-   - git+https://github.com/cheginit/pygeoutils.git
-   - git+https://github.com/cheginit/pynhd.git
-   - git+https://github.com/cheginit/py3dep.git
-   - git+https://github.com/cheginit/pygeohydro.git
+- pip
+- pip:
+  - git+https://github.com/cheginit/async_retriever.git
+  - git+https://github.com/cheginit/pygeoogc.git
+  - git+https://github.com/cheginit/pygeoutils.git
+  - git+https://github.com/cheginit/pynhd.git
+  - git+https://github.com/cheginit/py3dep.git
+  - git+https://github.com/cheginit/pygeohydro.git
     
  
