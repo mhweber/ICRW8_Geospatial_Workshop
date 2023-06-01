@@ -431,6 +431,28 @@ gdal()
 DT::datatable(gdal(drivers = TRUE))
 ```
 
+We can get raster data the [National Map family of APIs](https://apps.nationalmap.gov/services/) and in particular 3DEP Elevation data and work with it using `terra` or `stars`.  We'll use Mike Johnson's `AOI` package to get a county polygon to use as a template to pass to `terrainr` for our area of interest
+```{r}
+library(terrainr)
+library(AOI)
+library(mapview)
+mapviewOptions(fgb=FALSE)
+
+AOI::aoi_get(state = "OR", county = "Benton") |> mapview()
+```
+
+```{r}
+aoi <- AOI::aoi_get(state = "OR", county = "Benton")
+output_tiles <- get_tiles(aoi,
+                          services = c("elevation", "ortho"),
+                          resolution = 30 # pixel side length in meters
+                          )
+```
+
+```{r}
+terra::plot(r, main='SpatRaster')
+```
+
 #### httr and jsonlite
 In R, httr and jsonlite packages are used to consume the API’s that provide data in json format.
 
