@@ -3,37 +3,112 @@ channels:
   - conda-forge
   - nodefaults
 dependencies:
-  - python>=3.10
 
-  # HyRiver packages
-  - py3dep>=0.13
-  - pynhd>=0.13
-  - pygeohydro>=0.13
+# HyRiver packages
+- py3dep>=0.13
+- pynhd>=0.13
+- pygeohydro>=0.13
 
-  # Optional deps to speed up xarray
-  - bottleneck
+# pygeoogc deps
+# - async-retriever >=0.3.5
+- cytoolz
+- defusedxml
+- owslib >=0.27.2
+- pyproj >=2.2
+- requests
+- requests-cache >=0.9.6
+- shapely >=2.0
+- urllib3
 
-  # Other third-party deps
-  - contextily
-  - datashader
-  - ipykernel
-  - ipywidgets
-  - mapclassify
-  - proplot
-  - pytables
-  - xarray-spatial
-  - osmnx
-  - gdal
-  - gdptools
+ # async-retriever deps
+- aiodns
+- aiosqlite
+- aiohttp >=3.8.3
+- brotli
+- cytoolz
+- nest-asyncio
+- aiohttp-client-cache >=0.8.1
+- ujson
+- cytoolz
 
-  - pip
-  - pip:
-    - git+https://github.com/cheginit/async_retriever.git
-    - git+https://github.com/cheginit/pygeoogc.git
-    - git+https://github.com/cheginit/pygeoutils.git
-    - git+https://github.com/cheginit/pynhd.git
-    - git+https://github.com/cheginit/py3dep.git
-    - git+https://github.com/cheginit/pygeohydro.git
-    
-    
+ # pygeoutils deps
+- cytoolz
+- dask-core
+- geopandas >=0.7
+- netcdf4
+- numpy >=1.17
+- pyproj >=2.2
+- rasterio >=1.2
+- rioxarray >=0.11
+- scipy
+- shapely >=2.0
+- ujson
+- xarray >=2022.03.0
 
+# Other third-party deps
+- contextily
+- datashader
+- ipykernel
+- ipywidgets
+- mapclassify
+- proplot
+- pytables
+- xarray-spatial
+- osmnx
+- gdal
+
+# hydrosignatures deps
+- numpy
+- pandas
+- scipy
+
+# optional deps
+- numba
+
+# pynhd deps
+# - async-retriever >=0.3.6
+- cytoolz
+- geopandas >=0.9
+- networkx
+- numpy >=1.17
+- pandas >=1.0
+- pyarrow >=1.0.1
+# - pygeoogc >=0.13.7
+# - pygeoutils >=0.13.7
+- shapely >=2.0
+
+# pygeohydro deps
+- cytoolz
+- defusedxml
+- folium
+- geopandas >=0.7
+- h5netcdf
+
+# - hydrosignatures >=0.1.1
+- lxml
+- matplotlib-base >=3.3
+- numpy >=1.17
+- pandas >=1.0
+# - pygeoogc >=0.13.7
+# - pygeoutils >=0.13.9
+# - pynhd >=0.13.7
+- rasterio >=1.2
+- rioxarray >=0.11.0
+- scipy
+- shapely >=2.0
+- xarray >=2022.03.0
+# optional deps
+- planetary-computer
+- pystac-client
+
+# optional deps for speeding up some operations
+- bottleneck
+
+- pip
+- pip:
+  - git+https://github.com/cheginit/async_retriever.git
+  - git+https://github.com/cheginit/pygeoogc.git
+  - git+https://github.com/cheginit/pygeoutils.git
+  - git+https://github.com/cheginit/pynhd.git
+  - git+https://github.com/cheginit/py3dep.git
+  - git+https://github.com/cheginit/pygeohydro.git
