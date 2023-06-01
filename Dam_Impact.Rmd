@@ -1,0 +1,276 @@
+---
+title: "Impact of Dams on Streamflow"
+author: "Mike Johnson, Marc Weber"
+date: 2023-06-05
+output:
+  html_document:
+    toc: yes
+    toc_depth: '4'
+    df_print: paged
+  html_notebook:
+    toc: yes
+    toc_float: yes
+    toc_depth: 4
+editor_options:
+  chunk_output_type: inline
+---
+
+## Notes
+  non-api functions used:
+    glimpse, filter, inner_join, select
+    geom_sf, geom_histogram,
+    read_sf (with vsi)
+
+  topics
+    - tables to spatial, spatial to table (st_drop_geometry)
+    - projected vs geographic CRS
+    - mapping
+    - I/O from APIs and remote files
+    - Spatial predicates/filters
+
+
+## Dam Impact Analysis
+
+The primary goal of this hands-on tutorial is to introduce a handful of geospatial web services for conducting scientific studies. For this purpose, we're going to take a look at the effects of building dams on streamflow. Here are some example peer-reviewed papers on this topic.
+
+- https://doi.org/10.5194/hess-17-3189-2013
+- https://doi.org/10.1002/2017WR020871
+
+We set the area of interest (AOI) for this study to Texas and study dams that have been built in the 1995-2005 period.
+
+### Streamflow Gauges
+
+```{r}
+library(sf)             # vector data
+library(terra)          # raster data
+library(dplyr)          # data manipulation
+library(dataRetrieval)  # USGS data access
+library(ggplot2)        # data visualization
+```
+
+First, we use the National Water Information System (NWIS) service to check streamflow data availability in our AOI, Texas, and 10 years before and after the period of our study, i.e., the 1985-2015 period.
+
+```{r}
+start = "1985-01-01"
+end   = "2015-01-01"
+state = "TX"
+
+texas = AOI::aoi_get(state = state)
+
+# Instantiate plot
+ggplot() +
+  # Add texas POLYGON
+  geom_sf(data = texas, color = "red", fill = "blue") +
+  # Apply theme
+  theme_light()
+```
+
+Next we query NWIS data using the `dataRetrieval` package, specifying:
+  -state
+  -data range
+  -data type
+  -data cd
+```{r}
+# Query data
+sites = dataRetrieval::whatNWISdata(
+  # State to search
+  stateCd = state,
+  # Goal date range
+  startDt = start, endDt = end,
+  # Daily Values
+  outputDataTypeCd = "dv",
+  # Streamflow
+  parameterCd = "00060")
+
+glimpse(sites)
+```
+
+We can see that there are `r nrow(sites)` streamflow gauge stations in Texas that fit our criteria. Now, let's filter these stations a step further to include only those stations that have around 30 years of daily streamflow data with drainage area of larger than 10 km^2^ that have been impacted by human activities.
+
+For this we remotely access the gages 2 data set using `gdal` and it's [virtual file system driver](https://www.gdal.org/gdal_virtual_file_systems.html) and join it to the above data.
+```{r}
+sites = read_sf('/vsizip/{/vsicurl/https://water.usgs.gov/GIS/dsdl/gagesII_9322_point_shapefile.zip}/gagesII_9322_sept30_2011.shp')  %>%
+  # Find those that the reference classifciation is NA and the drainage area is greater then 10
+  filter(is.na(HCDN_2009), DRAIN_SQKM > 10)   %>%
+  # Join to the site IDs returned from NWIS
+  inner_join(sites, by = c("STAID" = "site_no")) %>%
+  # Find those that give a daily mean (stat_cd), and have at least 30 years of data
+  # Send to a projected transformation
+  st_transform(5070)
+```
+
+We can see that there are `r nrow(sites)` streamflow gauge stations in Texas that fit our criteria.
+
+```{r}
+# Instantiate plot
+ggplot() +
+  # Add texas POLYGON
+  geom_sf(data = texas, color = "red", fill = "blue") +
+  # Add sites to map
+  geom_sf(data = sites, pch = 8, color = "white") +
+  # Apply theme
+  theme_light()
+```
+
+### Dams
+
+Next we need data on dam locations and want to isolate those that are built between 1995 and 2005, are in the state of Texas, and store at least 1,000 Acre Feet.
+
+```{r}
+
+# Read from USACE NID dataset
+require(dams); require(ggplot2)
+dim(nid_subset)
+names(nid_subset)
+dams <- nid_subset |> 
+  # keep only relevant columns
+  dplyr::select(nidid,longitude,latitude, year_completed, state, nid_storage) |> 
+  # Find those within year range, the state of Texas, and of a given size
+  dplyr::filter(between(year_completed, 1995, 2005), state == "TX", nid_storage > 1000)  |> 
+  # convert table to sf object
+  sf::st_as_sf(coords = c('longitude', 'latitude'), crs = 4326)   |> 
+  # Send to a projected transformation
+  st_transform(5070)
+
+# Instantiate plot
+ggplot() +
+  # Add texas POLYGON
+  geom_sf(data = texas, color = "red", fill = "blue") +
+  # Add sites to map
+  geom_sf(data = sites, pch = 8, color = "white") +
+  # Add dams to map
+  geom_sf(data = dams, pch = 16, color = "darkgreen") +
+  # Apply theme
+  theme_light()
+```
+
+As is evident from the plot above, there are many gage locations that don't have any dams in their vicinity. One way to eliminate these stations is using a spatial query based on a search radius. We can determine an estimation for our search radius based on the upstream drainage area distribution of the streamflow gauges.
+
+```{r}
+# Instatiate plots, and add site data
+ggplot(data = sites, aes(x = DRAIN_SQKM)) +
+  # Generate a histogram
+  geom_histogram()
+```
+
+We can see that most stations have a drainage area of less than 15000 km^2^. Since they're not very large a search radius of 10 km should be sufficient. Now, we define a function that carries out an efficient spatial query to find the stations that have at least one dam within a 10-km radius.
+
+
+```{r}
+# Filter the dams to only inlcude those within 10000 m of a site
+dams2 = st_filter( dams, sites,
+                   .predicate = st_is_within_distance,
+                   dist = 10000)
+
+# Filter the dams to only include those within 10000 m of a site
+sites2 = st_filter( sites, dams,
+                    .predicate = st_is_within_distance,
+                    dist = 10000)  %>%
+  # Only inlcude relevant columns for readabilty
+  select(STAID, DRAIN_SQKM)
+
+
+# Instatiate plots, and add site data
+ggplot(data = sites2, aes(x = DRAIN_SQKM)) +
+  # Generate a histogram
+  geom_histogram()
+```
+
+```{r}
+# Instantiate plot
+ggplot() +
+  # Add texas POLYGON
+  geom_sf(data = texas, color = "red", fill = "blue") +
+  # Add sites to map
+  geom_sf(data = sites2, pch = 8, color = "white") +
+  # Add dams to map
+  geom_sf(data = dams2, pch = 16, color = "darkgreen") +
+  # Apply theme
+  theme_light()
+```
+
+
+### Flowlines and Hydrolinking
+Here we use `dataRetrieval` and the `findNLDI` function to get the NHDPlus COMID associated with each of the points
+```{r}
+dams2$dam_comid <- NA
+for(i in 1:nrow(dams2)){
+  # Find the XY coordinates, in geographic space, for a dam
+  pt = st_coordinates(st_transform(dams2[i,], 4326))
+
+  # Find the COMID associated with that POINT, and add to the DAMS data.frame/sf
+  dams2$dam_comid[i] = dataRetrieval::findNLDI(location = pt)$origin$comid
+}
+# View Data
+glimpse(dams2)
+```
+
+```{r}
+# Convert dams to data.frame, and index by the ID of the site closest to that dam
+nearest = st_drop_geometry(dams2)[st_nearest_feature(sites2, dams2),]
+
+# merge the columns of sites and nearest
+joined = cbind(sites2, nearest)
+
+# View Data
+glimpse(joined)
+
+for(i in 1:nrow(joined)){
+  # Use the NLDI to find the upstream COMID (w/in 10km) of each gage site
+  tmp = dataRetrieval::findNLDI(nwis = joined$STAID[i], nav = "UT", distance_km = 10)
+
+  # Check if the linked dam COMID is in the uptream COMIDs for each gage
+  joined$upstream[i] = joined$dam_comid[i] %in% tmp$UT_flowlines$nhdplus_comid
+}
+
+# Only keep those in which the large dam is upstream
+joined = dplyr::filter(joined, upstream)
+
+glimpse(joined)
+```
+
+
+```{r}
+tmp = dataRetrieval::findNLDI(nwis = joined$STAID[1],
+               nav = "UT",
+               find= c('flowlines', "basin"))
+
+ggplot() +
+  geom_sf(data = tmp$basin) +
+  geom_sf(data = tmp$UT_flowlines) +
+  geom_sf(data = joined, pch = 8, color = "red", cex = 5) +
+  geom_sf(data = filter(dams2, nidid %in% joined$nidid), pch = 16, color = "darkgreen", cex = 5)
+```
+
+
+```{r}
+flows = dataRetrieval::readNWISdv(siteNumbers = joined$STAID,
+                   parameterCd = "00060")  %>%
+  dataRetrieval::renameNWISColumns() %>%
+  mutate(Y = as.numeric(format(Date, "%Y")))  %>%
+  group_by(Y)  %>%
+  summarize(meanQ  = mean(Flow))
+
+
+ggplot(data = flows, aes(x = Y, y = meanQ )) +
+  geom_line(color = "blue") +
+  geom_vline(xintercept =  2004, lty = 2, color = 'red', lwd = 1.5) +
+  theme_minimal()
+```
+
+### Landcover
+Here we again use the `gdal` [virtual file system driver](https://www.gdal.org/gdal_virtual_file_systems.html) to pull in 2019 NLCD land cover from R `feddata`
+```{r}
+r = terra::rast("/vsicurl/https://storage.googleapis.com/feddata-r/nlcd/2019_Land_Cover_L48.tif")
+
+vAOI = terra::project(terra::vect(tmp$basin), terra::crs(r))
+
+lc = terra::crop(r, vAOI, snap = "out")  |> 
+  terra::mask(vAOI)
+
+
+terra::freq(lc) %>%
+  arrange(-count)  %>%
+  mutate(sqkm = count * prod(terra::res(lc)) /1e6)
+```
+#

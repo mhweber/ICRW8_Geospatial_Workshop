@@ -1,0 +1,39 @@
+name: icrw8
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python>=3.10
+
+  # HyRiver packages
+  - py3dep>=0.13
+  - pynhd>=0.13
+  - pygeohydro>=0.13
+
+  # Optional deps to speed up xarray
+  - bottleneck
+
+  # Other third-party deps
+  - contextily
+  - datashader
+  - ipykernel
+  - ipywidgets
+  - mapclassify
+  - proplot
+  - pytables
+  - xarray-spatial
+  - osmnx
+  - gdal
+  - gdptools
+
+  - pip
+  - pip:
+    - git+https://github.com/cheginit/async_retriever.git
+    - git+https://github.com/cheginit/pygeoogc.git
+    - git+https://github.com/cheginit/pygeoutils.git
+    - git+https://github.com/cheginit/pynhd.git
+    - git+https://github.com/cheginit/py3dep.git
+    - git+https://github.com/cheginit/pygeohydro.git
+    
+    
+
