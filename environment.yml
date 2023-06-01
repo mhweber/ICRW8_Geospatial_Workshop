@@ -8,7 +8,7 @@ dependencies:
 - py3dep>=0.13
 - pynhd>=0.13
 - pygeohydro>=0.13
- 
+
 # pygeoogc deps
 # - async-retriever >=0.3.5
 - cytoolz
@@ -19,7 +19,7 @@ dependencies:
 - requests-cache >=0.9.6
 - shapely >=2.0
 - urllib3
- 
+
  # async-retriever deps
 - aiodns
 - aiosqlite
@@ -56,7 +56,7 @@ dependencies:
 - xarray-spatial
 - osmnx
 - gdal
- 
+
 # hydrosignatures deps
 - numpy
 - pandas
@@ -83,7 +83,7 @@ dependencies:
 - folium
 - geopandas >=0.7
 - h5netcdf
- 
+
 # - hydrosignatures >=0.1.1
 - lxml
 - matplotlib-base >=3.3
@@ -112,5 +112,3 @@ dependencies:
   - git+https://github.com/cheginit/pynhd.git
   - git+https://github.com/cheginit/py3dep.git
   - git+https://github.com/cheginit/pygeohydro.git
-    
- 
