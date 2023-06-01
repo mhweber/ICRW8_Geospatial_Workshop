@@ -417,8 +417,6 @@ poly <- sf::st_transform(poly, 5070)
 lwgeom::st_perimeter(poly)
 ```
 
-
-
 #### terra and stars 
 For accessing raster data - first look at terra:
 
