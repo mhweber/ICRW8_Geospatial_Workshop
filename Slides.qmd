@@ -144,7 +144,7 @@ A list of unary predicates:
 A list of binary predicates is:
 
 | predicate            | meaning                                                                                                             | inverse of   |
-|-----------------|---------------------------------------|----------------|
+|-----------------|-------------------------------------|-----------------|
 | `contains`           | None of the points of A are outside B                                                                               | `within`     |
 | `contains_properly`  | A contains B and B has no points in common with the boundary of A                                                   |              |
 | `covers`             | No points of B lie in the exterior of A                                                                             | `covered_by` |
@@ -261,7 +261,7 @@ knitr::include_graphics("img/sf_xfig.png")
 We can break this down following examples presented in the recently published [Spatial Data Science](https://r-spatial.org/book/03-Geometries.html) by Edzar Pebesma and Rober Bivand. The most common simple feature geometries used to represent a *single* feature are:
 
 | type                 | description                                                        |
-|---------------------|---------------------------------------------------|
+|----------------------|--------------------------------------------------|
 | `POINT`              | single point geometry                                              |
 | `MULTIPOINT`         | set of points                                                      |
 | `LINESTRING`         | single linestring (two or more points connected by straight lines) |
@@ -420,9 +420,13 @@ poly <- sf::st_transform(poly, 5070)
 lwgeom::st_perimeter(poly)
 ```
 
-#### terra and stars
+#### terra for raster data
 
-For accessing raster data - first look at terra:
+We'll look at using [terra](https://rspatial.github.io/terra/reference/terra-package.html) for working with raster data in R - [stars](https://r-spatial.github.io/stars/) is another library for working with raster data and spatiotemporal arrays (raster and vector data cubes) but for the sake of time we won't demonstrate stars in this workshop.
+
+`terra` builds on the older `raster` package and provides methods for low-level data manipulation as well as high-level global, local, zonal, and focal computations. The predict and interpolate methods facilitate the use of regression type (interpolation, machine learning) models for spatial prediction, including with satellite remote sensing data. Processing of very large files is supported.
+
+Like `sf`, `terra` links to GDAL, and the version and drivers can be viewed using package support functions:
 
 ```{r}
 # install.packages(terra)
@@ -464,6 +468,36 @@ terra::plot(terra::rast(output_tiles[["elevation"]][[1]]))
 ```{r}
 terra::plotRGB(terra::rast(output_tiles[["ortho"]][[1]]),scale = 1)
 ```
+
+We can also use the \[elevatr\] package by Jeff Hollister for accessing elevation data through web services and clip out elevation to a watershed basin we access through `nhdplusTools` and the `NLDI`.
+
+Note that `get_elev_raster` from `elevatr` will generate a set of warnings, particularly regarding retirement of `rgdal` - the package will need to be updated to conform with [retirement of rgdal, rgeos and maptools](https://r-spatial.org/r/2022/04/12/evolution.html).
+
+```{r}
+#| message: false
+#| error: false
+library(nhdplusTools)
+library(elevatr)
+library(mapview)
+mapviewOptions(fgb=FALSE)
+# We're passing an identifier for the stream reach (and catchment) that we know is the downstream-most segment on the Calapooia River using the COMID below
+start_comid = 23763529
+nldi_feature <- list(featureSource = "comid", featureID = start_comid)
+basin <- nhdplusTools::get_nldi_basin(nldi_feature = nldi_feature)
+
+x <- get_elev_raster(basin, z = 12)
+# x is returned as a raster object rather than a terra spatraster, so we need to convert to spatraster
+mapview::mapview(basin) + mapview(x)
+```
+
+We can also crop the elevation raster to our basin using `terra` - note that `mapview` expects `raster` objects rather than `terra` `SpatRasters` so we need to convert between `terr` and `raster`.
+```{r}
+library(raster)
+x <- terra::mask(terra::rast(x), basin)
+x <- raster::raster(x)
+mapview::mapview(basin, alpha.regions = 0.02, color='blue', lwd=2) + mapview(x)
+```
+
 
 #### httr and jsonlite
 
@@ -626,7 +660,6 @@ plot(sf::st_geometry(fline[fline$COMID %in% c(unlist(up), unlist(dn)),]),
 plot(point, cex = 2, lwd = 2, add = TRUE)
 ```
 
-
 ### Catchment Characteristics and Accumulation
 
 [`nhdplusTools`](https://doi-usgs.github.io/nhdplusTools) (only in the latest `hydroloom` branch) and [`StreamCatTools`](https://usepa.github.io/StreamCatTools) can be used to retrieve a wide range of catchment characteristics. See the [StremCatTools Vignette](https://usepa.github.io/StreamCatTools/) for further details and examples.
@@ -663,17 +696,18 @@ plot(cat['PCTIMP2016CAT'])
 With the two catalogs of characteristics above, we have access to nearly any characteristic imaginable and both even offer downstream accumulations of the variables. However, sometimes it is necessary to sample and accumulate data not already available. `nhdplusTools` supports accumulating drainage area and length and `hydroloom`, going forward, supports downstream accumulation more generically. Here, we'll just use one of the examples pulled above to illustrate how this works.
 
 ```{r}
+library(dplyr)
 accum_df <- sf::st_drop_geometry(fline) |>
-  select(COMID, FromNode, ToNode, Divergence, AreaSqKM) |>
+  dplyr::select(COMID, FromNode, ToNode, Divergence, AreaSqKM) |>
   hydroloom::add_toids() |>
-  left_join(select(cat, -AreaSqKM), by = c("COMID" = "FEATUREID")) |>
+  dplyr::left_join(dplyr::select(cat, -AreaSqKM), by = c("COMID" = "FEATUREID")) |>
   sf::st_sf() |>
-  mutate(area_weighted_PCTIMP2016CAT = 
+  dplyr::mutate(area_weighted_PCTIMP2016CAT = 
            ifelse(is.na(PCTIMP2016CAT) & AreaSqKM == 0, 
                   yes = 0, no = AreaSqKM * PCTIMP2016CAT))
 
 accum_df <- accum_df |>
-  mutate(tot_PCTIMP2016CAT = 
+  dplyr::mutate(tot_PCTIMP2016CAT = 
            hydroloom::accumulate_downstream(accum_df, "area_weighted_PCTIMP2016CAT") / 
            hydroloom::accumulate_downstream(accum_df, "AreaSqKM"))
 
@@ -681,11 +715,10 @@ plot(cat['PCTIMP2016CAT'])
 plot(accum_df['tot_PCTIMP2016CAT'])
 ```
 
-
-
 ## Data access summary -- web services and scalability
 
-## R and Python Interoperability 
+## R and Python Interoperability
+
 We can us[Reticulate](https://rstudio.github.io/reticulate/index.html) to inter-operate easily between R and Python within RStudio and share objects between languages
 
 ```{r}
@@ -707,13 +740,14 @@ print(np$version$full_version)
 Simple examples from [reticulate - calling Python](https://rstudio.github.io/reticulate/articles/calling_python.html):
 
 Import a module and call a function from Python:
+
 ```{r}
 os <- import("os")
 os$listdir(".")
 ```
 
-Object conversion -
-When Python objects are returned to R they are converted to R objects by default - but you can deal in native Python types by choosing `convert=FALSE` in the import function 
+Object conversion - When Python objects are returned to R they are converted to R objects by default - but you can deal in native Python types by choosing `convert=FALSE` in the import function
+
 ```{r}
 # import numpy and specify no automatic Python to R conversion
 np <- import("numpy", convert = FALSE)
@@ -731,18 +765,23 @@ py_to_r(sum)
 ```
 
 Passing Dataframes between Python and R:
+
 ```{r}
 pd <- import("pandas")
 penguins <- pd$read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/modeldata/penguins.csv")
 dplyr::glimpse(penguins)
 ```
+
 Or like this:
+
 ```{python}
 import pandas as pd
 penguins =pd.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/modeldata/penguins.csv")
 print(penguins.head())
 ```
+
 Call Python from R:
+
 ```{r}
 penguins <- py$penguins
 dplyr::glimpse(penguins)
@@ -750,6 +789,7 @@ dplyr::glimpse(penguins)
 ```
 
 Call R from Python:
+
 ```{r}
 data(iris)
 iris <- iris |> 
@@ -760,36 +800,33 @@ iris <- iris |>
 print(r.iris.head())
 print(r.iris['Petal.Length'].min())
 ```
+
 ## Resources
 
 ### General
- * [Awesome Geospatial](https://github.com/sacridini/Awesome-Geospatial)
+
+-   [Awesome Geospatial](https://github.com/sacridini/Awesome-Geospatial)
 
 ### R
-* [Hydroinformatics in R](https://vt-hydroinformatics.github.io/):
-    Extensive Notes and exercises for a course on data analysis techniques in hydrology using the programming language R
-* [Spatial Data Science by Edzar Pebesma and Roger Bivand](https://r-spatial.org/book/)
 
-* [Geocomputation with R](https://r.geocompx.org/)
-* [r-spatial](https://github.com/r-spatial): Suite of fundamental packages for working with spatial data in R
-
-#### Web Services
-
-* [Accessing REST API (JSON data) using httr and jsonlite](https://rstudio-pubs-static.s3.amazonaws.com/480665_ba2655419209496dbb799f1c7d050673.html)
+-   [Hydroinformatics in R](https://vt-hydroinformatics.github.io/): Extensive Notes and exercises for a course on data analysis techniques in hydrology using the programming language R
+-   [Spatial Data Science by Edzar Pebesma and Roger Bivand](https://r-spatial.org/book/)
+-   [Geocomputation with R](https://r.geocompx.org/)
+-   [r-spatial](https://github.com/r-spatial): Suite of fundamental packages for working with spatial data in R
+-   [Working with Geospatial Hydrologic Data Using Web Services (R)](https://mikejohnson51.github.io/IOW2022_R/slides.html)
+-   [Accessing REST API (JSON data) using httr and jsonlite](https://rstudio-pubs-static.s3.amazonaws.com/480665_ba2655419209496dbb799f1c7d050673.html)
 
 ### Python
-* [Datashader](https://datashader.org/):
-    Accurately render even the largest data
-* [GeoPandas](https://geopandas.org/en/stable/index.html)
-* [HyRiver](https://docs.hyriver.io/index.html): a suite of Python packages that provides a unified API for retrieving geospatial/temporal data from various web services
-* [Python Foundation for Spatial Analysis](https://courses.spatialthoughts.com/python-foundation.html)
-* [Python for Geographic Data Analysis](https://pythongis.org/index.html)
-* [gdptools](https://gdptools.readthedocs.io/en/latest/) A Python package for grid- or polygon-polygon area-weighted interpolation statistics
-* [Intro to Python GIS](https://automating-gis-processes.github.io/CSC18/lessons/L2/geopandas-basics.html)
-* [xarray](https://xarray.pydata.org/en/stable/): An open-source project and Python package that makes working with labeled multi-dimensional
-    arrays simple, efficient, and fun!
-* [rioxarray](https://corteva.github.io/rioxarray/stable/index.html): Rasterio xarray extension.
-* [GeoPandas](https://geopandas.org/en/stable/):
-    An open-source project to make working with geospatial data in python easier.
-* [OSMnx](https://github.com/gboeing/osmnx): A Python package that lets you download and analyze geospatial data from OpenStreetMap.
-* [Xarray Spatial](https://xarray-spatial.org/master/index.html): Implements common raster analysis functions using `numba` and provides an easy-to-install, easy-to-extend codebase for raster analysis.
+
+-   [Datashader](https://datashader.org/): Accurately render even the largest data
+-   [GeoPandas](https://geopandas.org/en/stable/index.html)
+-   [HyRiver](https://docs.hyriver.io/index.html): a suite of Python packages that provides a unified API for retrieving geospatial/temporal data from various web services
+-   [Python Foundation for Spatial Analysis](https://courses.spatialthoughts.com/python-foundation.html)
+-   [Python for Geographic Data Analysis](https://pythongis.org/index.html)
+-   [gdptools](https://gdptools.readthedocs.io/en/latest/) A Python package for grid- or polygon-polygon area-weighted interpolation statistics
+-   [Intro to Python GIS](https://automating-gis-processes.github.io/CSC18/lessons/L2/geopandas-basics.html)
+-   [xarray](https://xarray.pydata.org/en/stable/): An open-source project and Python package that makes working with labeled multi-dimensional arrays simple, efficient, and fun!
+-   [rioxarray](https://corteva.github.io/rioxarray/stable/index.html): Rasterio xarray extension.
+-   [GeoPandas](https://geopandas.org/en/stable/): An open-source project to make working with geospatial data in python easier.
+-   [OSMnx](https://github.com/gboeing/osmnx): A Python package that lets you download and analyze geospatial data from OpenStreetMap.
+-   [Xarray Spatial](https://xarray-spatial.org/master/index.html): Implements common raster analysis functions using `numba` and provides an easy-to-install, easy-to-extend codebase for raster analysis.
