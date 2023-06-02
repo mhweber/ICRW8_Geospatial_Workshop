@@ -6,7 +6,7 @@ Material for the 'Working with Geospatial Hydrologic Data for Watershed Analyses
 ## Getting Started
 
 ### R
-For working with R, you can use [RStudio](https://www.rstudio.com/).  There are useful tips [here](https://solutions.posit.co/envs-pkgs/environments/r-installation/) on installing and managing R.  You'll need the following libraries installed:
+For working with R, you can use [RStudio](https://www.rstudio.com/) and you will need the following libraries installed:
 
 ```r
 library(remotes)
@@ -25,6 +25,7 @@ library(osmdata)
 library(mapview)
 library(dataRetrieval)
 library(terra)
+library(raster)
 library(stars)
 library(remotes)
 library(elevatr)
@@ -74,12 +75,9 @@ Here is a list of some useful geospatial tools and resources:
 * [Hydroinformatics in R](https://vt-hydroinformatics.github.io/):
     Extensive Notes and exercises for a course on data analysis techniques in hydrology using the programming language R
 * [Spatial Data Science by Edzar Pebesma and Roger Bivand](https://r-spatial.org/book/)
-
 * [Geocomputation with R](https://r.geocompx.org/)
 * [r-spatial](https://github.com/r-spatial): Suite of fundamental packages for working with spatial data in R
-
-#### Web Services
-
+* [Working with Geospatial Hydrologic Data Using Web Services (R)](https://mikejohnson51.github.io/IOW2022_R/slides.html)
 * [Accessing REST API (JSON data) using httr and jsonlite](https://rstudio-pubs-static.s3.amazonaws.com/480665_ba2655419209496dbb799f1c7d050673.html)
 
 ### Python
