@@ -6,7 +6,7 @@ Material for the 'Working with Geospatial Hydrologic Data for Watershed Analyses
 ## Getting Started
 
 ### R
-For working with R, you can use [RStudio](https://www.rstudio.com/) and you will need the following libraries installed:
+For working with R, you can use [RStudio](https://www.rstudio.com/).  There are useful tips [here](https://solutions.posit.co/envs-pkgs/environments/r-installation/) on installing and managing R.  You'll need the following libraries installed:
 
 ```r
 library(remotes)
