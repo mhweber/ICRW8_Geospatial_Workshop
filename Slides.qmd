@@ -10,7 +10,6 @@ format:
     code-fold: true
 editor: visual
 date: 2023-06-05
-
 ---
 
 ## Introduction
@@ -19,7 +18,7 @@ Housekeeping, introductions
 
 ## Key Concepts Across Both languages
 
-### Core Libraries    
+### Core Libraries
 
 -   Spatial data structures across languages and applications is primarily organized through [OSgeo](https://www.osgeo.org) and [OGC](https://www.ogc.org)) *and* a few core libraries underpin spatial libraries in programming languages and in software applications(R, Python, QGIS, ArcPro)!
 
@@ -34,12 +33,12 @@ These libraries include:
 -   **NetCDF** --\> Multidimensional (XYZT) data abstraction (read, write)
 
 ### Requesting web services (APIs)
-More and more data is available as web services, and the data is stored in a remote server in JSON, XML, HTML format which is accessible through API’s.
+
+More and more data is available as web services, and the data is stored in a remote server in JSON, XML, HTML format which is accessible through API's.
 
 **JSON** (JavaScript Object Notation) is a lightweight data-interchange format which is easy for machines to generate and parse; easy for humans to write and read.
 
-Sample JSON format :
-{ “data”: “Click Here”, “size”: 36, “style”: “bold”, “name”: “text1”, }
+Sample JSON format : { "data": "Click Here", "size": 36, "style": "bold", "name": "text1", }
 
 **API** - An Application Programming Interface (API) takes a structured request from an application and returns structured results from the host application. With a **Rest API** you're getting a representation of the requested data stored in a server. A **Rest API** also is what we call 'stateless', which means a server doesn't store any data between requests from clients.
 
@@ -47,20 +46,19 @@ Sample JSON format :
 
 **HTTP** clients are used for accessing the API. **HyperText Transfer Protocol (HTTP)** enables communication between the client and server using **HTTP** methods. If we want to access or manipulate resources a **Rest API** uses specific request verbs we need to become familiar with:
 
-- GET: used to acquire data from a database
+-   GET: used to acquire data from a database
 
-- POST: used to add data to a database
+-   POST: used to add data to a database
 
-- PUT: update the data in a database
+-   PUT: update the data in a database
 
-- DELETE: delete data in a database
-
+-   DELETE: delete data in a database
 
 ### Geospatial data representation fundamentals: simple features and geospatial grids
 
-- ***Vector** data are comprised of points, lines, and polygons that represent discrete spatial entities, such as a river, watershed, or stream gauge.
+-   \***Vector** data are comprised of points, lines, and polygons that represent discrete spatial entities, such as a river, watershed, or stream gauge.
 
-- **Raster** data divides spaces into rectilinear cells (pixels) to represent spatially continuous phenomena, such as elevation or the weather. The cell size (or resolution) defines the fidelity of the data.
+-   **Raster** data divides spaces into rectilinear cells (pixels) to represent spatially continuous phenomena, such as elevation or the weather. The cell size (or resolution) defines the fidelity of the data.
 
 ```{r, fig.align='center', echo = FALSE, out.width="75%" }
 knitr::include_graphics("img/09-vec-raster.jpg")
@@ -83,13 +81,14 @@ knitr::include_graphics("img/09-sf-model.png")
 ```
 
 #### Simple and valid geometries and ring direction
-This breakdown of simple features follows for the most part [this section in Spatial Data Science](https://r-spatial.org/book/03-Geometries.html)
-For *linestrings* to be considered *simple* they must not self-intersect:
+
+This breakdown of simple features follows for the most part [this section in Spatial Data Science](https://r-spatial.org/book/03-Geometries.html) For *linestrings* to be considered *simple* they must not self-intersect:
 
 ```{r}
 library(sf)
 (ls <- st_linestring(rbind(c(0,0), c(1,1), c(2,2), c(0,2), c(1,1), c(2,0))))
 ```
+
 ```{r}
 #| message: false
 #| echo: false
@@ -106,68 +105,65 @@ c(is_simple = st_is_simple(ls))
 
 For *polygons* several other conditions have to be met to be *simple*:
 
-- polygon rings are closed (the last point equals the first)
-- polygon holes (inner rings) are inside their exterior ring
-- polygon inner rings maximally touch the exterior ring in single points, not over a line
-- a polygon ring does not repeat its own path
-- in a multi-polygon, an external ring maximally touches another exterior ring in single points, not over a line
+-   polygon rings are closed (the last point equals the first)
+-   polygon holes (inner rings) are inside their exterior ring
+-   polygon inner rings maximally touch the exterior ring in single points, not over a line
+-   a polygon ring does not repeat its own path
+-   in a multi-polygon, an external ring maximally touches another exterior ring in single points, not over a line
 
-*z* and *m* coordinates
-As well as having the necessary X and Y coordinates, single point (vertex) simple features can have:
+*z* and *m* coordinates As well as having the necessary X and Y coordinates, single point (vertex) simple features can have:
 
-- a Z coordinate, denoting altitude, and/or
-- an M value, denoting some “measure”
+-   a Z coordinate, denoting altitude, and/or
+-   an M value, denoting some "measure"
 
-**Text and binary encodings**
-A key part of the standard feature encoding is **text** and **binary** encodings.  The well-known text (WKT) encoding we have shown above gives us a human-readable description of the geometry.  The well-known binary (WKB) encoding is machine-readable, lossless, and faster to work with than text encoding.  WKB is used for all interactions with `GDAL` and `GEOS`.
+**Text and binary encodings** A key part of the standard feature encoding is **text** and **binary** encodings. The well-known text (WKT) encoding we have shown above gives us a human-readable description of the geometry. The well-known binary (WKB) encoding is machine-readable, lossless, and faster to work with than text encoding. WKB is used for all interactions with `GDAL` and `GEOS`.
 
-**Operations on geometries**
-We can break down operations on geometries for *vector* features in the following way:
+**Operations on geometries** We can break down operations on geometries for *vector* features in the following way:
 
-* **predicates**: a logical asserting a certain property is `TRUE`
-* **measures**: a quantity (a numeric value, possibly with measurement unit)
-* **transformations**: newly generated geometries
+-   **predicates**: a logical asserting a certain property is `TRUE`
+-   **measures**: a quantity (a numeric value, possibly with measurement unit)
+-   **transformations**: newly generated geometries
 
 We can look at these operations by **what** they operate on, whether the are single geometries, pairs, or sets of geometries:
 
-* **unary** when it's a single geometry
-* **binary** when it's pairs of geometries
-* **n-ary** when it's sets of geometries
+-   **unary** when it's a single geometry
+-   **binary** when it's pairs of geometries
+-   **n-ary** when it's sets of geometries
 
 **Unary** predicates work to describe a property of a geometry.
 
 A list of unary predicates:
 
-|predicate                     |meaning                                                          
-|------------------------------|------------------------------------------------
-|`is`                           |Tests if geometry belongs to a particular class
-|`is_simple`                    |Tests whether geometry is simple
-|`is_valid`                     |Test whether geometry is valid 
-|`is_empty`                     |Tests if geometry is empty
-
+| predicate   | meaning                                         |
+|-------------|-------------------------------------------------|
+| `is`        | Tests if geometry belongs to a particular class |
+| `is_simple` | Tests whether geometry is simple                |
+| `is_valid`  | Test whether geometry is valid                  |
+| `is_empty`  | Tests if geometry is empty                      |
 
 A list of binary predicates is:
 
-|predicate                     |meaning                                                          |inverse of      |
-|------------------------------|-----------------------------------------------------------------|----------------|
-|`contains`                    |None of the points of A are outside B| `within`|
-|`contains_properly`           |A contains B and B has no points in common with the boundary of A| |
-|`covers`                      |No points of B lie in the exterior of A| `covered_by`|
-|`covered_by`                  |Inverse of `covers`| |
-|`crosses`                     |A and B have some but not all interior points in common| |
-|`disjoint`                    |A and B have no points in common| `intersects`|
-|`equals`                      |A and B are topologically equal: node order or number of nodes may differ; identical to A contains B and A within B|
-|`equals_exact`                |A and B are geometrically equal, and have identical node order| |
-|`intersects`                  |A and B are not disjoint| `disjoint`|
-|`is_within_distance`          |A is closer to B than a given distance|
-|`within`                      |None of the points of B are outside A| `contains`|
-|`touches`                     |A and B have at least one boundary point in common, but no interior points|  |
-|`overlaps`                    |A and B have some points in common; the dimension of these is identical to that of A and B|  |
-|`relate`                      |Given a mask pattern, return whether A and B adhere to this pattern| |
+| predicate            | meaning                                                                                                             | inverse of   |
+|-----------------|---------------------------------------|----------------|
+| `contains`           | None of the points of A are outside B                                                                               | `within`     |
+| `contains_properly`  | A contains B and B has no points in common with the boundary of A                                                   |              |
+| `covers`             | No points of B lie in the exterior of A                                                                             | `covered_by` |
+| `covered_by`         | Inverse of `covers`                                                                                                 |              |
+| `crosses`            | A and B have some but not all interior points in common                                                             |              |
+| `disjoint`           | A and B have no points in common                                                                                    | `intersects` |
+| `equals`             | A and B are topologically equal: node order or number of nodes may differ; identical to A contains B and A within B |              |
+| `equals_exact`       | A and B are geometrically equal, and have identical node order                                                      |              |
+| `intersects`         | A and B are not disjoint                                                                                            | `disjoint`   |
+| `is_within_distance` | A is closer to B than a given distance                                                                              |              |
+| `within`             | None of the points of B are outside A                                                                               | `contains`   |
+| `touches`            | A and B have at least one boundary point in common, but no interior points                                          |              |
+| `overlaps`           | A and B have some points in common; the dimension of these is identical to that of A and B                          |              |
+| `relate`             | Given a mask pattern, return whether A and B adhere to this pattern                                                 |              |
 
-See the [Geometries chapter of Spatial Data Science](https://r-spatial.org/book/03-Geometries.html) for a full treatment that also covers **unary and binary measures* as well as *unary, binary and n-ary transformers* 
+See the [Geometries chapter of Spatial Data Science](https://r-spatial.org/book/03-Geometries.html) for a full treatment that also covers \*\*unary and binary measures\* as well as *unary, binary and n-ary transformers*
 
 #### Raster data model
+
 You can read the [GDAL raster data model](https://gdal.org/user/raster_data_model.html) and [OpenGIS Grid Coverages specification](https://docs.geotools.org/stable/javadocs/org/opengis/coverage/grid/package-summary.html) but with a raster data model (a cell-based tesselation) you can read / write and operate on raster data in numerous formats using **gdal**:
 
 ```{r}
@@ -183,14 +179,14 @@ DT::datatable(gdal(drivers = TRUE))
 
 When writing software for hydrologic data, concrete conceptual and logical definitions for the spatial features our software works with are critical to enabling interoperability. Along these lines, some key definitions to consider:
 
-- **Catchment**: A physiographic unit with zero or one inlets and one outlet. A catchment is represented by one or more partial realizations; flowpath, divide, and networks of flowpaths and divides.
-- **Nexus**: Conceptual outlet for water contained by a catchment. The hydro nexus concept represents the place where a catchment interacts with another catchment.
-- **Flowpath**: A flowpath is a linear geometry that represents the connection between a catchment’s inlet and its outlet. All flowpaths have a local drainage area and may be aggregates of flowlines.
-- **Flowline**: A flowline is a linear geometry that represents a segment of a flowing body of water. Some flowlines have no local drainage area and are never aggregate features.
-- **Drainage Basin**: A catchment with zero inlets and one (internal or external) outlet. 
-- **Mainstem**: The flowpath of a drainage basin.
+-   **Catchment**: A physiographic unit with zero or one inlets and one outlet. A catchment is represented by one or more partial realizations; flowpath, divide, and networks of flowpaths and divides.
+-   **Nexus**: Conceptual outlet for water contained by a catchment. The hydro nexus concept represents the place where a catchment interacts with another catchment.
+-   **Flowpath**: A flowpath is a linear geometry that represents the connection between a catchment's inlet and its outlet. All flowpaths have a local drainage area and may be aggregates of flowlines.
+-   **Flowline**: A flowline is a linear geometry that represents a segment of a flowing body of water. Some flowlines have no local drainage area and are never aggregate features.
+-   **Drainage Basin**: A catchment with zero inlets and one (internal or external) outlet.
+-   **Mainstem**: The flowpath of a drainage basin.
 
-In the following, we create a representation of catchment divides and flowpaths with the hydrologic locations that represent their nexuses. 
+In the following, we create a representation of catchment divides and flowpaths with the hydrologic locations that represent their nexuses.
 
 **Note:** both the divide and flowpath are said to be realizations of the overall catchment that they represent. In other words, the divide and flowpath are both part of the representation of a catchment.
 
@@ -211,9 +207,10 @@ plot(flowpath, col = "dodgerblue3", add = TRUE)
 plot(nexus, col = "springgreen", add = TRUE, pch = 20)
 
 ```
-In this example, we create a drainage basin boundary (divide), mainstem flowpath of the drainage basin, and the flowlines that make up the hydrographic network of the drainage basin. 
 
-**Fun Fact:** the word "watershed" has come to refer to the land encompassed by a drainage divide but this usage is not correct. A watershed is "a dividing ridge between drainage areas" which is in line with the non hydrologic use of the word: a crucial dividing point, line, or factor. 
+In this example, we create a drainage basin boundary (divide), mainstem flowpath of the drainage basin, and the flowlines that make up the hydrographic network of the drainage basin.
+
+**Fun Fact:** the word "watershed" has come to refer to the land encompassed by a drainage divide but this usage is not correct. A watershed is "a dividing ridge between drainage areas" which is in line with the non hydrologic use of the word: a crucial dividing point, line, or factor.
 
 ```{r}
 basin <- sf::st_geometry(sf::st_union(new_hope_catchment, by_feature = FALSE))
@@ -264,7 +261,7 @@ knitr::include_graphics("img/sf_xfig.png")
 We can break this down following examples presented in the recently published [Spatial Data Science](https://r-spatial.org/book/03-Geometries.html) by Edzar Pebesma and Rober Bivand. The most common simple feature geometries used to represent a *single* feature are:
 
 | type                 | description                                                        |
-|--------------------|----------------------------------------------------|
+|---------------------|---------------------------------------------------|
 | `POINT`              | single point geometry                                              |
 | `MULTIPOINT`         | set of points                                                      |
 | `LINESTRING`         | single linestring (two or more points connected by straight lines) |
@@ -379,16 +376,16 @@ library(dplyr)
 ```
 
 #### Measure (GEOS Measures)
-Measures are the questions we ask about the dimension of a geometry, once a coordinate reference system has been established and we can compute:
-- How long is a line or polygon perimeter? (unit)
-- What is the area of a polygon? *(unit^2)
-- How far are two objects from one another? (unit)
 
-- *Measures* come from the GEOS library
-- *Measures* are calculated in the **units** of the projection
+Measures are the questions we ask about the dimension of a geometry, once a coordinate reference system has been established and we can compute: - How long is a line or polygon perimeter? (unit) - What is the area of a polygon? \*(unit\^2) - How far are two objects from one another? (unit)
+
+-   *Measures* come from the GEOS library
+-   *Measures* are calculated in the **units** of the projection
 
 We'll demonstrate with a toy dataset of USGS gages in a data package from a previous workshop:
+
 ```{r}
+# remotes::install_github("mhweber/awra2020spatial")
 gages <- read.csv(system.file("extdata", "Gages_flowdata.csv", package = "awra2020spatial")) |> 
   dplyr::select(SOURCE_FEA, STATE, LAT_SITE, LON_SITE)
 ```
@@ -396,7 +393,9 @@ gages <- read.csv(system.file("extdata", "Gages_flowdata.csv", package = "awra20
 ```{r, echo = FALSE}
 dplyr::glimpse(gages)
 ```
+
 Using `st_as_sf` in `sf` we can easily make a data frame with coordinates into a simple features data frame
+
 ```{r}
 gages <- gages |> 
   sf::st_as_sf(coords = c("LON_SITE", "LAT_SITE"), crs = 4269)
@@ -405,11 +404,15 @@ gages <- gages |>
 ```{r,  echo = FALSE}
 dplyr::glimpse(gages)
 ```
+
 What is the distance from the first stream gage to the second stream gage?
+
 ```{r}
 sf::st_distance(gages[1,], gages[2,])
 ```
-We can generate toy area by buffering a point (to make a polygon) and find area and perimeter.  We need to project into a planar CRS to get perimeter so we will project to an Albers projection using an `epsg` code:
+
+We can generate toy area by buffering a point (to make a polygon) and find area and perimeter. We need to project into a planar CRS to get perimeter so we will project to an Albers projection using an `epsg` code:
+
 ```{r}
 poly <- sf::st_buffer(gages[1,],200)
 sf::st_area(poly)
@@ -417,7 +420,8 @@ poly <- sf::st_transform(poly, 5070)
 lwgeom::st_perimeter(poly)
 ```
 
-#### terra and stars 
+#### terra and stars
+
 For accessing raster data - first look at terra:
 
 ```{r}
@@ -431,18 +435,21 @@ gdal()
 DT::datatable(gdal(drivers = TRUE))
 ```
 
-We can get raster data the [National Map family of APIs](https://apps.nationalmap.gov/services/) and in particular 3DEP Elevation data and work with it using `terra` or `stars`.  We'll use Mike Johnson's `AOI` package to get a county polygon to use as a template to pass to `terrainr` for our area of interest
+We can get raster data the [National Map family of APIs](https://apps.nationalmap.gov/services/) and in particular 3DEP Elevation data and work with it using `terra` or `stars`. We'll use Mike Johnson's `AOI` package to get a county polygon to use as a template to pass to `terrainr` for our area of interest
+
 ```{r}
 library(terrainr)
+# remotes::install_github("mikejohnson51/AOI")
 library(AOI)
 library(mapview)
 mapviewOptions(fgb=FALSE)
 
-AOI::aoi_get(state = "OR", county = "Benton") |> mapview()
+AOI::aoi_get(list("Corvallis, OR", 10, 10)) |> mapview()
 ```
 
 ```{r}
-aoi <- AOI::aoi_get(state = "OR", county = "Benton")
+# aoi <- AOI::aoi_get(state = "OR", county = "Benton")
+aoi <- aoi_get(list("Corvallis, OR", 10, 10))
 output_tiles <- get_tiles(aoi,
                           services = c("elevation", "ortho"),
                           resolution = 30 # pixel side length in meters
@@ -450,23 +457,28 @@ output_tiles <- get_tiles(aoi,
 ```
 
 ```{r}
-terra::plot(r, main='SpatRaster')
+
+terra::plot(terra::rast(output_tiles[["elevation"]][[1]]))
+```
+
+```{r}
+terra::plotRGB(terra::rast(output_tiles[["ortho"]][[1]]),scale = 1)
 ```
 
 #### httr and jsonlite
-In R, httr and jsonlite packages are used to consume the API’s that provide data in json format.
 
-**httr**
-httr provides us with an HTTP client to access the API with GET/POST methods, passing query parameters, and verifying the response with regard to the data format.
+In R, httr and jsonlite packages are used to consume the API's that provide data in json format.
 
-**jsonlite**
-This R package is used to convert the received json format to readable R object or data frame. `jsonlite` can also be used to convert R objects or a data frame to a json format data type.
+**httr** httr provides us with an HTTP client to access the API with GET/POST methods, passing query parameters, and verifying the response with regard to the data format.
+
+**jsonlite** This R package is used to convert the received json format to readable R object or data frame. `jsonlite` can also be used to convert R objects or a data frame to a json format data type.
 
 Along with these two packages, `rlist` in R can be used to perform additional manipulation on the received json response. `list.stack` and `list.select` are two important methods exposed by `rlist` that can be used to get parsed json data into a `tibble`.
 
 To learn about these (and other) packages, type `?httr`, `?jsonlite` and `?rlist` in the console of Rstudio to view the documentation.
 
 Here we see an example using a JSON API from the world bank that uses a GET request below - we can see a couple ways of passing request parameters - first we'll embed the query directly in the URL for the request itself:
+
 ```{r}
 #| message: false
 #| warning: false
@@ -479,12 +491,14 @@ jsonResponse <- httr::GET("http://api.worldbank.org/country?per_page=10&region=O
 ```
 
 We can also generate the query by passing it in a separate list we create and adding as a query parameter in the GET request
+
 ```{r}
 query<-list(per_page="10",region="OED",lendingtype="LNX",format="json")
 jsonResponse <- httr::GET("http://api.worldbank.org/country",query=query)
 ```
 
-The `jsonlite` package can be used to parse our response which we indicated above to return as json.  Why does the attempt below return an error?
+The `jsonlite` package can be used to parse our response which we indicated above to return as json. Why does the attempt below return an error?
+
 ```{r}
 #| eval: false
 #| warning: false
@@ -496,16 +510,21 @@ HINT: what type of object is `jsonResponse` above?
 ```{r}
 typeof(jsonResponse)
 ```
+
 We can also get information about the response using `httr`:
+
 ```{r}
 http_type(jsonResponse)
 ```
+
 We have a list - let's take a look to figure out to pull out what we want into a data frame:
+
 ```{r}
 names(jsonResponse)
 ```
 
 It seems like `content` is what we want, how do we pull out?
+
 ```{r}
 #| eval: false
 #| warning: false
@@ -513,6 +532,7 @@ df <- jsonlite::fromJSON(jsonResponse$content)
 ```
 
 Still doesn't work - we need to do some further parsing of this response using `content` in `httr` which we can then pass to `jsonlite` and the `fromJSON` function to get data into a data frame
+
 ```{r}
 jsonResponseParsed <- httr::content(jsonResponse, as="parsed")
 is.list(jsonResponseParsed)
@@ -524,14 +544,17 @@ names(jsonResponseParsed[[2]][[1]])
 # now we're getting somewhere...
 names(jsonResponseParsed[[2]][[2]])
 ```
+
 We convert the parsed json response list to data table using `lapply` and `rbindlist`:
+
 ```{r}
 df <- lapply(jsonResponseParsed[[2]],as.data.table) 
 typeof(df) # still a list - one more step
 dt <- rbindlist(df, fill = TRUE)
 ```
 
-Some APIs like [GitHub]("https://api.github.com") are easier to pull directly into a dataframe using `fromJSON`
+Some APIs like [GitHub](%22https://api.github.com%22) are easier to pull directly into a dataframe using `fromJSON`
+
 ```{r}
 myGitHubRepos <- fromJSON("https://api.github.com/users/mhweber/repos")
 
@@ -549,9 +572,9 @@ head(myGitHubRepos)
 
 Finding where along a river system some spatial data lies is a key use case for many modeling and analysis tasks. A full discussion is available in the [`nhdplusTools` indexing and referencing vignette.](https://doi-usgs.github.io/nhdplusTools/articles/indexing.html)
 
-We need two inputs. Lines to index to and points that we want addresses for. With these inputs, [`nhdplusTools`](https://doi-usgs.github.io/nhdplusTools/reference/index.html#indexing-and-network-navigation) (and soon [`hydroloom`](https://doi-usgs.github.io/hydroloom/reference/index.html#indexing-and-linear-referencing)) supports generation of hydro addresses with `get_flowline_index()`. 
+We need two inputs. Lines to index to and points that we want addresses for. With these inputs, [`nhdplusTools`](https://doi-usgs.github.io/nhdplusTools/reference/index.html#indexing-and-network-navigation) (and soon [`hydroloom`](https://doi-usgs.github.io/hydroloom/reference/index.html#indexing-and-linear-referencing)) supports generation of hydro addresses with `get_flowline_index()`.
 
-The example below is as simple as possible. `get_flowline_index()` has a number of other capabilities, such as increased address precision and the ability to return multiple nearby addresses, that can be found in the function documentation. 
+The example below is as simple as possible. `get_flowline_index()` has a number of other capabilities, such as increased address precision and the ability to return multiple nearby addresses, that can be found in the function documentation.
 
 ```{r}
 #| warning: false
@@ -568,8 +591,7 @@ plot(sf::st_geometry(fline[fline$COMID %in% address$COMID,]))+
   plot(point, add = TRUE)
 ```
 
-
-A natural next step once we've found a hydro address is to search upstream or downstream from the location we found. [`nhdplusTools`](https://doi-usgs.github.io/nhdplusTools/reference/index.html#network-navigation) and soon [`hydroloom`](https://doi-usgs.github.io/hydroloom/reference/index.html#network-navigation-and-accumulation) offer a few upstream / downstream search functions. Here we'll show a couple from `nhdplusTools`.  
+A natural next step once we've found a hydro address is to search upstream or downstream from the location we found. [`nhdplusTools`](https://doi-usgs.github.io/nhdplusTools/reference/index.html#network-navigation) and soon [`hydroloom`](https://doi-usgs.github.io/hydroloom/reference/index.html#network-navigation-and-accumulation) offer a few upstream / downstream search functions. Here we'll show a couple from `nhdplusTools`.
 
 ```{r}
 #| warning: false
@@ -587,9 +609,10 @@ plot(point, cex = 2, lwd = 2, add = TRUE)
 
 ```
 
-The ability to navigate up or down a mainstem rather than all connected tributaries and diversions, requires some attributes that identify primary up and downstream paths. Without those paths, navigation is still possible but the "main" path navigation method is not. Below, a new function available in `hydroloom`, `navigate_network_dfs()` is shown. 
+The ability to navigate up or down a mainstem rather than all connected tributaries and diversions, requires some attributes that identify primary up and downstream paths. Without those paths, navigation is still possible but the "main" path navigation method is not. Below, a new function available in `hydroloom`, `navigate_network_dfs()` is shown.
 
 ```{r}
+# remotes::install_github("DOI-USGS/nhdplusTools@2cb81da")
 #| warning: false
 net <- hydroloom::add_toids(sf::st_drop_geometry(fline), 
                             return_dendritic = FALSE)
@@ -603,30 +626,30 @@ plot(sf::st_geometry(fline[fline$COMID %in% c(unlist(up), unlist(dn)),]),
 plot(point, cex = 2, lwd = 2, add = TRUE)
 ```
 
-In R here and in separate notebook for Python
 
 ### Catchment Characteristics and Accumulation
 
-[`nhdplusTools`](https://doi-usgs.github.io/nhdplusTools) (only in the latest `hydroloom` branch) and [`StreamCatTools`](https://usepa.github.io/StreamCatTools) can be used to retrieve a wide range of catchment characteristics.
+[`nhdplusTools`](https://doi-usgs.github.io/nhdplusTools) (only in the latest `hydroloom` branch) and [`StreamCatTools`](https://usepa.github.io/StreamCatTools) can be used to retrieve a wide range of catchment characteristics. See the [StremCatTools Vignette](https://usepa.github.io/StreamCatTools/) for further details and examples.
 
 ```{r}
 #| warning: false
-# remotes::install_github("DOI-USGS/nhdplusTools@2cb81da")
 library(nhdplusTools)
+# remotes::install_github("USEPA/StreamCatTools")
+library(StreamCatTools)
 nhdplusTools::nhdplusTools_data_dir(tempdir())
 cat <- sf::st_transform(new_hope_catchment, 4326)
 
 streamcat_chars <- StreamCatTools::sc_get_params(param='name')
 
-# nawqa_chars <- nhdplusTools::get_characteristics_metadata()
+nawqa_chars <- nhdplusTools::get_characteristics_metadata()
 
 StreamCatTools::sc_fullname("pctimp2016")
 
-# nawqa_chars$description[nawqa_chars$ID == "CAT_TWI"]
+nawqa_chars$description[nawqa_chars$ID == "CAT_TWI"]
 
-# twi <- nhdplusTools::get_catchment_characteristics("CAT_TWI", cat$FEATUREID)
+twi <- nhdplusTools::get_catchment_characteristics("CAT_TWI", cat$FEATUREID)
 
-# twi <- dplyr::rename(twi, CAT_TWI = "characteristic_value")
+twi <- dplyr::rename(twi, CAT_TWI = "characteristic_value")
 
 imp <- StreamCatTools::sc_get_data("pctimp2016", 'catchment', cat$FEATUREID)
 
@@ -639,10 +662,7 @@ plot(cat['PCTIMP2016CAT'])
 
 With the two catalogs of characteristics above, we have access to nearly any characteristic imaginable and both even offer downstream accumulations of the variables. However, sometimes it is necessary to sample and accumulate data not already available. `nhdplusTools` supports accumulating drainage area and length and `hydroloom`, going forward, supports downstream accumulation more generically. Here, we'll just use one of the examples pulled above to illustrate how this works.
 
-
-
 ```{r}
-
 accum_df <- sf::st_drop_geometry(fline) |>
   select(COMID, FromNode, ToNode, Divergence, AreaSqKM) |>
   hydroloom::add_toids() |>
@@ -661,48 +681,115 @@ plot(cat['PCTIMP2016CAT'])
 plot(accum_df['tot_PCTIMP2016CAT'])
 ```
 
-In R here and in separate notebook for Python
 
-etc
 
 ## Data access summary -- web services and scalability
 
-## [Reticulate](https://rstudio.github.io/reticulate/index.html)
+## R and Python Interoperability 
+We can us[Reticulate](https://rstudio.github.io/reticulate/index.html) to inter-operate easily between R and Python within RStudio and share objects between languages
+
 ```{r}
 library(reticulate)
-py_config()
-Sys.setenv(PATH= paste("C:/Users/mweber/AppData/Local/miniforge3/envs/test/Library/bin",Sys.getenv()["PATH"],sep=";"))
-Sys.setenv(RETICULATE_PYTHON = "C:/Users/mweber/AppData/Local/miniforge3/envs/test/python.exee")
-use_condaenv("C:/Users/mweber/AppData/Local/miniforge3/envs/test")
-library(reticulate)
+# reticulate::install_miniconda()
+# create a new environment conda environment 
+# conda_create("r-reticulate")
 
-py_config()
-
+# install NumPy and SciPy
+# conda_install("r-reticulate", "scipy")
+# conda_install("r-reticulate", "numpy")
+# conda_install("r-reticulate", "pandas")
+# indicate that we want to use a specific condaenv
+use_condaenv("r-reticulate")
 np <- import("numpy")
 print(np$version$full_version)
 ```
 
+Simple examples from [reticulate - calling Python](https://rstudio.github.io/reticulate/articles/calling_python.html):
+
+Import a module and call a function from Python:
+```{r}
+os <- import("os")
+os$listdir(".")
+```
+
+Object conversion -
+When Python objects are returned to R they are converted to R objects by default - but you can deal in native Python types by choosing `convert=FALSE` in the import function 
+```{r}
+# import numpy and specify no automatic Python to R conversion
+np <- import("numpy", convert = FALSE)
+
+# do some array manipulations with NumPy
+a <- np$array(c(1:4))
+print (a)
+
+sum <- a$cumsum()
+
+# convert to R explicitly at the end
+print (py_to_r(a))
+
+py_to_r(sum)
+```
+
+Passing Dataframes between Python and R:
+```{r}
+pd <- import("pandas")
+penguins <- pd$read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/modeldata/penguins.csv")
+dplyr::glimpse(penguins)
+```
+Or like this:
+```{python}
+import pandas as pd
+penguins =pd.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/modeldata/penguins.csv")
+print(penguins.head())
+```
+Call Python from R:
+```{r}
+penguins <- py$penguins
+dplyr::glimpse(penguins)
+
+```
+
+Call R from Python:
+```{r}
+data(iris)
+iris <- iris |> 
+  dplyr::filter(Petal.Length > 3)
+```
+
+```{python}
+print(r.iris.head())
+print(r.iris['Petal.Length'].min())
+```
 ## Resources
 
-### R
-#### Spatial Data
-[Spatial Data Science by Edzar Pebesma and Roger Bivand](https://r-spatial.org/book/)
+### General
+ * [Awesome Geospatial](https://github.com/sacridini/Awesome-Geospatial)
 
-[Geocomputation with R](https://r.geocompx.org/)
+### R
+* [Hydroinformatics in R](https://vt-hydroinformatics.github.io/):
+    Extensive Notes and exercises for a course on data analysis techniques in hydrology using the programming language R
+* [Spatial Data Science by Edzar Pebesma and Roger Bivand](https://r-spatial.org/book/)
+
+* [Geocomputation with R](https://r.geocompx.org/)
+* [r-spatial](https://github.com/r-spatial): Suite of fundamental packages for working with spatial data in R
 
 #### Web Services
-[Accessing REST API (JSON data) using httr and jsonlite](https://rstudio-pubs-static.s3.amazonaws.com/480665_ba2655419209496dbb799f1c7d050673.html
-)
+
+* [Accessing REST API (JSON data) using httr and jsonlite](https://rstudio-pubs-static.s3.amazonaws.com/480665_ba2655419209496dbb799f1c7d050673.html)
 
 ### Python
-
-[GeoPandas](https://geopandas.org/en/stable/index.html)
-
-[Python Foundation for Spatial Analysis](https://courses.spatialthoughts.com/python-foundation.html)
-
-[Python for Geographic Data Analysis](https://pythongis.org/index.html)
-
-[gdptools](https://gdptools.readthedocs.io/en/latest/)
-A Python package for grid- or polygon-polygon area-weighted interpolation statistics
-
-[Intro to Python GIS](https://automating-gis-processes.github.io/CSC18/lessons/L2/geopandas-basics.html)
+* [Datashader](https://datashader.org/):
+    Accurately render even the largest data
+* [GeoPandas](https://geopandas.org/en/stable/index.html)
+* [HyRiver](https://docs.hyriver.io/index.html): a suite of Python packages that provides a unified API for retrieving geospatial/temporal data from various web services
+* [Python Foundation for Spatial Analysis](https://courses.spatialthoughts.com/python-foundation.html)
+* [Python for Geographic Data Analysis](https://pythongis.org/index.html)
+* [gdptools](https://gdptools.readthedocs.io/en/latest/) A Python package for grid- or polygon-polygon area-weighted interpolation statistics
+* [Intro to Python GIS](https://automating-gis-processes.github.io/CSC18/lessons/L2/geopandas-basics.html)
+* [xarray](https://xarray.pydata.org/en/stable/): An open-source project and Python package that makes working with labeled multi-dimensional
+    arrays simple, efficient, and fun!
+* [rioxarray](https://corteva.github.io/rioxarray/stable/index.html): Rasterio xarray extension.
+* [GeoPandas](https://geopandas.org/en/stable/):
+    An open-source project to make working with geospatial data in python easier.
+* [OSMnx](https://github.com/gboeing/osmnx): A Python package that lets you download and analyze geospatial data from OpenStreetMap.
+* [Xarray Spatial](https://xarray-spatial.org/master/index.html): Implements common raster analysis functions using `numba` and provides an easy-to-install, easy-to-extend codebase for raster analysis.
