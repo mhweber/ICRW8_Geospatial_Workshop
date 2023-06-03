@@ -54,6 +54,32 @@ Sample JSON format : { "data": "Click Here", "size": 36, "style": "bold", "name"
 
 -   DELETE: delete data in a database
 
+Although web services facilitate accessing various datasets, we have to be wary
+of their limitations. Creating and maintaining a web service is a technically
+challenging and involved task, and it becomes even more complicated when the
+service becomes public. For public web services, number of users and load of
+their request is not predictable. Thus, public web services often have
+limitations and quotas on the number of requests. Considering that there
+are workarounds for these limitations, some users, wittingly or unwittingly,
+can cause a web service to slowdown or even shut down. So, we should expect
+planned or unplanned downtimes when using web services. Planned downtimes
+are usually announced by the service provider that can be for maintenance
+purposes or making some changes to the service. Keeping up with these changes
+is also another aspect that we need to take into account when working with web service.
+
+Additionally, sending a request and retrieving a response from a web service
+(a web service call) has an inherent overhead and is much slower than accessing
+a local file. Thus, web services might not be suitable for "large" requests,
+and it might be more efficient to download the dataset and store it locally.
+How "large" is large, depends on the capacity of a web service and the
+complexity of the request. For example, the NLDI web service has an endpoint
+that can navigate the NHD network up or downstream of a point of interest up
+to a given distance. This call is computationally expensive thus making many
+such requests can impact the performance of the web service. For such cases,
+it is more efficient to download the NHDPlus dataset and perform the navigation
+locally. For example, [NHDPlusTools](https://github.com/doi-usgs/nhdplustools/)
+in R and [PyNHD](https://docs.hyriver.io/readme/pynhd.html) in Python provide tools to navigate the NHDPlus dataset locally.
+
 ### Geospatial data representation fundamentals: simple features and geospatial grids
 
 -   \***Vector** data are comprised of points, lines, and polygons that represent discrete spatial entities, such as a river, watershed, or stream gauge.
