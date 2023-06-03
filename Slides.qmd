@@ -16,6 +16,10 @@ date: 2023-06-05
 
 Housekeeping, introductions
 
+*The views expressed in this presentation are those of the authors and do not necessarily represent the views or policies of the U.S. Environmental Protection Agency or the U.S.G.S.*
+
+*This land is ancestral and unceded land of the Chepenafa (Mary’s River) Band of the [Kalapuya](https://libraryguides.lanecc.edu/kalapuya) (pronounce “cal-uh-poo-yuh”), who have stewarded this beautiful area for generations.  The descendants of the Kalapuya People are now part of the federally recognized [Confederated Tribes of Grand Ronde](https://www.grandronde.org/) and [Confederated Tribes of the Siletz](https://www.ctsi.nsn.us/) of Oregon. The peak you see from numerous vantage points around Corvallis is Mary's Peak, which the Kalapuya called tcha Timanwi, or 'place of spiritual power', and is the highest peak in the Oregon Coast Range (4,097 feet).*
+
 ## Key Concepts Across Both languages
 
 ### Core Libraries
