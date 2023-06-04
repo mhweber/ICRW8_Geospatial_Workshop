@@ -36,9 +36,20 @@ library(Rspatialworkshop)
 remotes::install_github("mikejohnson51/AOI")
 #hydroloom
 remotes::install_github("DOI-USGS/nhdplusTools@2cb81da"
+library(hydroloom)
 library(AOI)
 library(terrainr)
+#StreamCatTools
 remotes::install_github("USEPA/StreamCatTools")
+library(StreamCatTools)
+#nwmTools
+remotes::install_github("mikejohnson51/nwmTools")
+library(nwmTools)
+library(cowplot)
+# zonal
+# remotes::install_github("NOAA-OWP/zonal")
+library(zonal)
+
 ```
 
 ### Python
