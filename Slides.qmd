@@ -144,7 +144,7 @@ A list of unary predicates:
 A list of binary predicates is:
 
 | predicate            | meaning                                                                                                             | inverse of   |
-|-----------------|-------------------------------------|-----------------|
+|------------------|------------------------------------|------------------|
 | `contains`           | None of the points of A are outside B                                                                               | `within`     |
 | `contains_properly`  | A contains B and B has no points in common with the boundary of A                                                   |              |
 | `covers`             | No points of B lie in the exterior of A                                                                             | `covered_by` |
@@ -261,7 +261,7 @@ knitr::include_graphics("img/sf_xfig.png")
 We can break this down following examples presented in the recently published [Spatial Data Science](https://r-spatial.org/book/03-Geometries.html) by Edzar Pebesma and Rober Bivand. The most common simple feature geometries used to represent a *single* feature are:
 
 | type                 | description                                                        |
-|----------------------|--------------------------------------------------|
+|-----------------------|-------------------------------------------------|
 | `POINT`              | single point geometry                                              |
 | `MULTIPOINT`         | set of points                                                      |
 | `LINESTRING`         | single linestring (two or more points connected by straight lines) |
@@ -491,13 +491,13 @@ mapview::mapview(basin) + mapview(x)
 ```
 
 We can also crop the elevation raster to our basin using `terra` - note that `mapview` expects `raster` objects rather than `terra` `SpatRasters` so we need to convert between `terr` and `raster`.
+
 ```{r}
 library(raster)
 x <- terra::mask(terra::rast(x), basin)
 x <- raster::raster(x)
 mapview::mapview(basin, alpha.regions = 0.02, color='blue', lwd=2) + mapview(x)
 ```
-
 
 #### httr and jsonlite
 
@@ -715,7 +715,55 @@ plot(cat['PCTIMP2016CAT'])
 plot(accum_df['tot_PCTIMP2016CAT'])
 ```
 
+### Spatial Data Aggregation and Resampling
+
+Numerous remotely sensed and modeled datasets are available spatially and temporally continuous coverages that can be accessed and processed without first downloading the data. Working with these datasets can be challenging due to data scale and access nuances. The [`opendap.catalog`](https://mikejohnson51.github.io/opendap.catalog/) R package provides a unified catalog of such data sources that can be accessed with both R and Python clients. `opendap.catalog` provides a simple way to discover and retrieve subsets of large XY[Z][T] datasets.
+
+The demo below shows how to access the catalog and pull a subset of one data source. There's much much more available in the catalog, including some advanced tiling of datasets such as MODIS. 
+
+```{r}
+library(opendap.catalog)
+glimpse(opendap.catalog::params)
+search("daily precipitation") |> 
+  search_summary() |> 
+  DT::datatable()
+(s = search('gridmet daily precipitation'))
+(harvey = dap(catalog = s, 
+             AOI = aoi_get(state = c("TX", "LA")), 
+             startDate = "2017-08-17",
+             endDate   = "2017-09-03"))
+plot(harvey[[1]])
+```
+
+Building on this simple data access, we can use the `zonal` package to create spatial summary statistics. Similar summaries can also be created with the `gdptools` python package relying on the [opendap.catalog](https://gdptools.readthedocs.io/en/latest/index.html) as a source of web availabledata. 
+
+
+```{r}
+# remotes::install_github("NOAA-OWP/zonal")
+library(zonal)
+
+harvey_counties = aoi_get(state = c("TX", "LA"), county = "all")
+
+system.time({
+summary_data = execute_zonal(harvey, 
+                             geom = harvey_counties, 
+                             fun = "sum", 
+                             ID = "fip_code", 
+                             join = TRUE)
+
+plot(summary_data[grepl("sum", names(summary_data))], border = NA,
+     max.plot = 16)
+})
+
+```
+
 ## Data access summary -- web services and scalability
+
+While there are many amazing new remote data access services and prototcols, they are by no means a panacea. We still have to cope with the realities of limited storage throughput, limited network bandwidth, and limited parallelism support of computer systems. By in large, web data access will fall into three broad categories. APIs, Object Stores, and File Servers. Increasingly, object stores are being used as file servers, but there is still useful a distinction to be drawn. 
+
+When working with an API, you are interacting with a remote computer that may or may not be prepared to cope with many concurrent requests. The computer may have less compute power than your laptop and it may be connected to an inexpensive storage device that can only provide a few MB/s of throughput. When working with APIs, you should always:
+1. start small and check latency per request.
+1. start 
 
 ## R and Python Interoperability
 
