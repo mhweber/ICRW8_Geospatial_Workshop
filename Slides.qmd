@@ -16,6 +16,10 @@ date: 2023-06-05
 
 Housekeeping, introductions
 
+*The views expressed in this presentation are those of the authors and do not necessarily represent the views or policies of the U.S. Environmental Protection Agency or the U.S.G.S.*
+
+*This land is ancestral and unceded land of the Chepenafa (Mary’s River) Band of the [Kalapuya](https://libraryguides.lanecc.edu/kalapuya) (pronounce “cal-uh-poo-yuh”), who have stewarded this beautiful area for generations.  The descendants of the Kalapuya People are now part of the federally recognized [Confederated Tribes of Grand Ronde](https://www.grandronde.org/) and [Confederated Tribes of the Siletz](https://www.ctsi.nsn.us/) of Oregon. The peak you see from numerous vantage points around Corvallis is Mary's Peak, which the Kalapuya called tcha Timanwi, or 'place of spiritual power', and is the highest peak in the Oregon Coast Range (4,097 feet).*
+
 ## Key Concepts Across Both languages
 
 ### Core Libraries
@@ -53,6 +57,32 @@ Sample JSON format : { "data": "Click Here", "size": 36, "style": "bold", "name"
 -   PUT: update the data in a database
 
 -   DELETE: delete data in a database
+
+Although web services facilitate accessing various datasets, we have to be wary
+of their limitations. Creating and maintaining a web service is a technically
+challenging and involved task, and it becomes even more complicated when the
+service becomes public. For public web services, number of users and load of
+their request is not predictable. Thus, public web services often have
+limitations and quotas on the number of requests. Considering that there
+are workarounds for these limitations, some users, wittingly or unwittingly,
+can cause a web service to slowdown or even shut down. So, we should expect
+planned or unplanned downtimes when using web services. Planned downtimes
+are usually announced by the service provider that can be for maintenance
+purposes or making some changes to the service. Keeping up with these changes
+is also another aspect that we need to take into account when working with web service.
+
+Additionally, sending a request and retrieving a response from a web service
+(a web service call) has an inherent overhead and is much slower than accessing
+a local file. Thus, web services might not be suitable for "large" requests,
+and it might be more efficient to download the dataset and store it locally.
+How "large" is large, depends on the capacity of a web service and the
+complexity of the request. For example, the NLDI web service has an endpoint
+that can navigate the NHD network up or downstream of a point of interest up
+to a given distance. This call is computationally expensive thus making many
+such requests can impact the performance of the web service. For such cases,
+it is more efficient to download the NHDPlus dataset and perform the navigation
+locally. For example, [NHDPlusTools](https://github.com/doi-usgs/nhdplustools/)
+in R and [PyNHD](https://docs.hyriver.io/readme/pynhd.html) in Python provide tools to navigate the NHDPlus dataset locally.
 
 ### Geospatial data representation fundamentals: simple features and geospatial grids
 
@@ -229,6 +259,8 @@ plot(mainstem, col = "blue", lwd = 2, add = TRUE)
 -   geospatial data representation fundamentals, simple features and geospatial grids
 
 ### Examples in R
+
+For more detiled treatment see [material for US EPA R User Group 2021 workshop](https://mhweber.github.io/R-User-Group-Spatial-Workshop-2021/)
 
 #### sf: simple features
 
@@ -598,7 +630,277 @@ myGitHubRepos <- myGitHubRepos |>
 head(myGitHubRepos)
 ```
 
-### Examples in Python (will be in a separate notebook in binder)
+### Examples in Python (separate notebook in binder)
+
+## Data access summary 
+This just builds on examples for [Working with Geospatial Hydrologic Data Using Web Services (R) for IOW Webinar](https://mikejohnson51.github.io/IOW2022_R/slides.html)
+
+### AOI
+
+AOI is _NOT_ on CRAN but provides interfaces for geocoding and retrieving spatial boundaries (e.g state, county, and country). When working with web-based,  subsetting services, the ability to quickly define common features is really convenient.
+
+We'll see through these examples that the concept of AOI is key to requesting subsets of data. Further well see that a reproducible way of generating these is a quic kway to make the sytanx of disparate packages more aligned.
+
+
+```{r}
+# remotes::install_github("mikejohnson51/AOI")
+library(AOI)
+
+# state
+aoi_get(state = "OR") |> mapview()
+
+# county
+aoi_get(state = "OR", county = "Benton") |> mapview()
+
+# country
+aoi_get(country = "Ukraine") |> mapview()
+
+# geocoding
+geocode("LaSells Stewart Center Corvallis", pt = TRUE) |> mapview()
+```
+
+### nhdplusTools
+
+We'll hear a lot about Dave's package [nhdplusTools](https://usgs-r.github.io/nhdplusTools/index.html) - it's primarily a R package for working with the NHD and the NHD data model. The package covers 5 primary use topics that include:
+
+1. [data access](https://usgs-r.github.io/nhdplusTools/reference/index.html#data-access)
+2. [data discovery and subsetting (via web services)](https://usgs-r.github.io/nhdplusTools/reference/index.html#discovery-and-subsetting)
+3. [Indexing and Network Navigation](https://usgs-r.github.io/nhdplusTools/reference/index.html#indexing-and-network-navigation)
+4. [Network Navigation](https://usgs-r.github.io/nhdplusTools/reference/index.html#network-navigation)
+5. [Network Attributes](https://usgs-r.github.io/nhdplusTools/reference/index.html#network-attributes)
+
+Given the focus here on geospatial data via web services, we will look at functions supporting use case 2.
+
+```{r}
+# install.packages('nhdplusTools')
+library(nhdplusTools)
+
+grep("get_", ls("package:nhdplusTools"), value = TRUE)
+```
+
+#### Basic Use
+
+Let's get data for an AOI around Corvalis. We use `AOI::aoi_get` to get the OpenStreetMap representation of Corvallis, and initialize an empty list to populate: 
+
+```{r}
+corvallis     = list()
+corvallis$AOI = aoi_get("Corvallis, OR")
+```
+
+Populate our Corvallis list with various elements we pull from `get_` functions in `nhdplusTools`:
+```{r}
+corvallis$nhdplus      <- get_nhdplus(AOI = corvallis$AOI) 
+corvallis$waterbodies  <- get_waterbodies(AOI = corvallis$AOI) 
+corvallis$gages        <- get_nwis(AOI = corvallis$AOI) 
+corvallis$huc12        <- get_huc12(AOI = corvallis$AOI) 
+
+# How many features per entry?
+sapply(corvallis, nrow)
+```
+
+```{r}
+mapview(corvallis)
+```
+
+In both the NHDPlus data model, and the emerging international OGC standard for representing surface water features [HY_features](https://docs.opengeospatial.org/is/14-111r6/14-111r6.html) it's recognized that hydrologic entities can be "realized" in a number of ways. 
+
+For example the holistic notion of a 'catchment' can be realized as a 'divide', 'flowpath', 'outlet', or other representation. The `nhdplusTools::get_nhdplus` functions support getting 3 realizations of the NHD features that are consistent with the NHDPlus Data model (`outlet`, `flowline`, `catchment`, and `all`).
+
+```{r}
+corvallis <- get_nhdplus(aoi_get("Corvallis, OR"), realization = "all")
+mapview(corvallis)
+```
+
+### dataRetrival
+
+The USGS supported [dataRetrieval](https://usgs-r.github.io/dataRetrieval/) package provides retrieval functions for USGS and EPA hydrologic and water quality data. Recently a Network Linked Data Index (NLDI) client was also added to the [package](http://usgs-r.github.io/dataRetrieval/articles/nldi.html).
+
+All sorts of dataRetrieval resources:
+[Home page](https://rconnect.usgs.gov/dataRetrieval/)
+[Tutorial for National Water Quality Monditoring Conference - Part 1](https://rconnect.usgs.gov/NMC_dataRetrieval_1/dataRetrieval_1.html#/title-slide)
+[Tutorial for National Water Quality Monditoring Conference - Part 2](https://rconnect.usgs.gov/NMC_dataRetrieval_2/dataRetrieval_2.html#/title-slide)
+
+#### Basic Use: Get streamflow Data
+What were the two gages we picked up geolocating Corvallis?
+
+```{r}
+corvallis$gages
+```
+
+```{r}
+#install.package('dataRetrieval')
+library(dataRetrieval)
+library(ggplot2)
+
+# Supply gauge ids from Corvallis example
+# Parameter codes can be found with (`dataRetrieval::parameterCdFile`)
+# "00060" is stream flow
+
+# we need to bring gages back to corvallis after our last operation
+corvallis$AOI = aoi_get("Corvallis, OR")
+corvallis$gages  <- get_nwis(AOI = corvallis$AOI)
+flows = readNWISdv(siteNumbers = corvallis$gages$site_no, parameterCd = "00060") |> 
+  renameNWISColumns()
+
+ggplot(data = flows) + 
+  geom_line(aes(x = Date, y = Flow)) + 
+  facet_wrap('site_no')
+```
+
+#### water quality
+We can also get water quality information - see the [NWQMC DataRetrieval Tutorial Part 1 for all the details](https://rconnect.usgs.gov/NMC_dataRetrieval_1/dataRetrieval_1.html#/title-slide)
+
+```{r}
+readWQPdata(statecode = "OR",
+            countycode = "Benton",
+            characteristicName = "Phosphorus",
+            sampleMedia = "Water",
+            dataProfile = "resultPhysChem") 
+```
+
+Let's explore phosphorus data in Benton County
+```{r}
+benton_phos <- readWQPsummary(statecode = "OR",
+                          countycode="Benton",
+                          sampleMedia = "Water",
+                          characteristicName = "Phosphorus")
+
+names(benton_phos) 
+
+```
+Apply some `dplyr` functions to group site information
+```{r}
+benton_phos_summary <- benton_phos |> 
+  rename(Site = MonitoringLocationIdentifier) |>
+  mutate(Lat = as.numeric(MonitoringLocationLatitude),
+         Lon = as.numeric(MonitoringLocationLongitude)) |> 
+  group_by(Site, Lat, Lon) |> 
+  summarise(min_year = min(YearSummarized),
+            max_year = max(YearSummarized),
+            count = sum(ResultCount)) |> 
+  mutate(POR = max_year - min_year) |> 
+  arrange(desc(count)) |> 
+  ungroup()
+
+benton_phos_summary
+```
+
+View with `mapview`- first we need to make our results an `sf` data frame for mapview to use.  Easy!
+```{r}
+results_sf <- benton_phos_summary  |> 
+  sf::st_as_sf(coords = c("Lon", "Lat"), crs = 4269, remove = FALSE)
+mapview(results_sf)
+```
+
+### NLDI client
+
+The hydro [Network-Linked Data Index (NLDI)](https://labs.waterdata.usgs.gov/about-nldi/index.html) is a system that can index spatial and river network-linked data and navigate the river network to allow discovery of indexed information.
+
+The NLDI service requires the following:
+
+1. A starting entity (`comid`, `nwis`, `wqp`, `location` and more). 
+ - The "more" includes the ever-growing set of resources available in the NLDI service that can be accessed with the `get_nldi_sources` function.
+
+```{r}
+DT::datatable(get_nldi_sources())
+```
+
+2. A direction to navigate along the network
+  - UM: upper mainstem
+  - UT: upper tributary
+  - DM: downstream mainstem
+  - DD: downstream divergence
+
+3. Features to find along the way!
+  - Any of the above features (e.g. `get_nldi_sources`)
+  - flowlines
+  - basin
+
+#### Basic use: NLDI
+
+The NLDI client in `dataRetrival` operates by speficing the origin, the navigation mode, and the features to find. In the following example, we want to navigate along the upstream tributary of COMID 101 (up to 1000 km) and find all flowline features, nwis gages, and the contributing drainage area. 
+
+```{r}
+nldi = findNLDI(comid= 23763529, 
+             nav= "UT", 
+             find= c("flowline", "nwis", 'basin'),
+             distance_km = 1000)
+
+sapply(nldi, nrow)
+```
+
+```{r}
+mapview(nldi)
+```
+
+### nwmTools
+
+While `dataRetrival` provides retrieval functions for observed data, there is an increasing amount of simulated data available for use. Once example is the 3 retrospective simulations of the [National Water Model](https://water.noaa.gov/about/nwm). This data certainly falls under the umbrella of ["big data"](https://www.cuahsi.org/about/news/big-data-dreaming-a-42-year-conus-hydrologic-retrospective) and can be difficult to work with given each hourly file (for up to 42 years!) is stored in separate, cloud based files.
+
+[`nwmTools`](https://mikejohnson51.github.io/nwmTools/) provides retrieval functions for these retrospective stream flow data from the NOAA National Water Model reanalysis products:
+
+#### Basic Use: Retrival
+
+```{r}
+# remotes::install_github("mikejohnson51/nwmTools")
+library(nwmTools)
+
+nwis = readNWISdv(site = gsub("USGS-", "", nldi$UT_nwissite$identifier[8]), 
+                  param = "00060") |> 
+  renameNWISColumns()
+
+nwm = readNWMdata(comid = nldi$UT_nwissite$comid[8])
+```
+
+#### Basic Use: Aggregation
+
+The timestep of the retrospective NWM data is hourly. In many cases, its more desirable to have the time step aggregated to a different temporal resolution. nwmTools provides a family of aggregation functions that allow you to specify the aggregation time period, and the aggregation summary statistic
+
+```{r}
+grep('aggregate_', ls("package:nwmTools"), value = TRUE)
+
+```
+
+```{r}
+# Core function
+nwm_ymd  = aggregate_ymd(nwm, "mean")
+# User defined function
+seasonal = aggregate_s(nwm, fun = function(x){quantile(x,.75)})
+# Multiple functions
+month    = aggregate_m(nwm, c('mean', "max"))
+
+a <-ggplot(data = nwis) + 
+  geom_line(aes(x = Date, y = Flow * 0.028316846592)) + 
+  labs(title = "NWIS Data") 
+b <-ggplot(data = nwm_ymd) + 
+  geom_line(aes(x = ymd, y = flow_cms_v2.1)) + 
+  labs(title = "NWM Daily Average")  
+c <-ggplot(data = seasonal) + 
+  geom_col(aes(x = season, y = flow_cms_v2.1)) + 
+  labs(title = "NWM Seasonal 75%") 
+d <-ggplot(data = month) + 
+  geom_col(aes(x = as.factor(month), y = max)) +
+  geom_col(aes(x = as.factor(month), y = mean), fill = "red") +
+  labs(title = "NWM Monthly Mean/Maximum")
+cowplot::plot_grid(a,b,c,d)
+```
+
+### zonal
+
+Often getting spatial data is not the end goal and in many cases producing area based summaries is critical.
+
+[`zonal`](https://github.com/NOAA-OWP/zonal) is a package that wraps the excellent [`exactextractr`](https://isciences.gitlab.io/exactextractr/) package with some added performance and convenience for these types of tasks. To use zonal, you must supply a raster dataset (SpatRaster), a geometry set to summarize over, and a summary functions (similar to `nwmTools::aggregate_*`). Lastly, you must provide the column with a unique identifier for each polygon object, and whether the summary data should be joined (`join  = TRUE`) to the original summary data.
+
+```{r}
+# remotes::install_github("NOAA-OWP/zonal")
+library(zonal)
+
+# Summary options
+zonal::ee_functions()
+zonal::weight_functions()
+```
+
+
 
 ## Use Cases
 
