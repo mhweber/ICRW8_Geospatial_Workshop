@@ -983,8 +983,6 @@ zonal::ee_functions()
 zonal::weight_functions()
 ```
 
-
-
 ## Use Cases
 
 ### Hydro Addressing
@@ -1044,6 +1042,41 @@ plot(sf::st_geometry(fline[fline$COMID %in% c(unlist(up), unlist(dn)),]),
      add = TRUE)
 plot(point, cex = 2, lwd = 2, add = TRUE)
 ```
+
+#### BONUS Use Case
+
+Going forward, linear referencing with the predecessor to the NHD will be to 
+a "mainstem" identifier. A "mainstem id" is a Uniform Resource Identifier that 
+works like a Digital Object Identifier. e.g. `https://geoconnex.us/ref/mainstems/1435189` 
+is the Calapooia River.
+
+If we know the uri ahead of time, we could look it up like this:
+
+```{r}
+calapooia <- sf::read_sf("https://geoconnex.us/ref/mainstems/1435189")
+names(calapooia)
+mapview::mapview(calapooia)
+```
+In the future, any data along the Calapooia would just link to that URI and we
+would know that it is supposed to be linked to that river. 
+
+If we don't know what river our data is on, we can find the URI from a lookup table.
+The mainstem system is brand new. Over time, mainstem lookup tables will become 
+more ubiquitous. Stay tuned!!
+
+```{r}
+
+point <- sf::st_sfc(sf::st_point(c(-123.149, 44.565)),
+                    crs = 4326)
+
+comid <- nhdplusTools::discover_nhdplus_id(point)
+
+mainstem_lookup <- readr::read_csv("https://github.com/internetofwater/ref_rivers/releases/download/v2.1/nhdpv2_lookup.csv")
+
+mainstem_lookup$uri[mainstem_lookup$comid == comid]
+
+```
+
 
 ### Catchment Characteristics and Accumulation
 
