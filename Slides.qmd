@@ -1,5 +1,5 @@
 ---
-title: "Introduction"
+title: "Working with Geospatial Hydrologic Data for Watershed Analyses in R and Python Using Web Services"
 format: 
   html:
     toc: true
@@ -14,7 +14,33 @@ date: 2023-06-05
 
 ## Introduction
 
-Housekeeping, introductions
+- Housekeeping
+- Introductions
+- Agenda:
+  1. Key Building blocks in R and Python 
+  2. Examples of fundamental Tools in R
+  3. Examples of fundamental Tools in Python
+  4. Use Cases and Worked Examples
+  5. Demonstration of Watershed Analysis with `Leafmap` and `WhiteboxTools` (leafmap.org/workshops/ICRW_2023/)
+  
+- Framework:
+
+This document and all of the workshop material are available at this GitHub repository:
+
+- https://github.com/mhweber/ICRW8_Geospatial_Workshop
+
+**To Follow Along with the Code**
+
+- This document is built in RStudio with `Quarto` and rendered to html - all code sections can be run in RStudio in the code blocks in `Quarto`, or copied and pasted into a new R script document
+- If you are familiar with using git and GitHub, you can fork and clone the repository and run locally - if not, you can simply copy and paste code to follow along with examples
+- Python code examples are in jupyter notebooks 
+    - if you have successfully set up an environment on your local machine you can run notebooks there
+    - alternatively, you can use the `binder` link we have set up to run jupyter notebooks in a binder environment
+
+
+*The views expressed in this presentation are those of the authors and do not necessarily represent the views or policies of the U.S. Environmental Protection Agency or the U.S.G.S.*
+
+*This land is ancestral and unceded land of the Chepenafa (Mary’s River) Band of the [Kalapuya](https://libraryguides.lanecc.edu/kalapuya) (pronounce “cal-uh-poo-yuh”), who have stewarded this beautiful area for generations.  The descendants of the Kalapuya People are now part of the federally recognized [Confederated Tribes of Grand Ronde](https://www.grandronde.org/) and [Confederated Tribes of the Siletz](https://www.ctsi.nsn.us/) of Oregon. The peak you see from numerous vantage points around Corvallis is Mary's Peak, which the Kalapuya called tcha Timanwi, or 'place of spiritual power', and is the highest peak in the Oregon Coast Range (4,097 feet).*
 
 *The views expressed in this presentation are those of the authors and do not necessarily represent the views or policies of the U.S. Environmental Protection Agency or the U.S.G.S.*
 
@@ -839,7 +865,8 @@ While `dataRetrival` provides retrieval functions for observed data, there is an
 
 [`nwmTools`](https://mikejohnson51.github.io/nwmTools/) provides retrieval functions for these retrospective stream flow data from the NOAA National Water Model reanalysis products:
 
-#### Basic Use: Retrival
+#### Retrival
+
 
 ```{r}
 # remotes::install_github("mikejohnson51/nwmTools")
@@ -852,7 +879,7 @@ nwis = readNWISdv(site = gsub("USGS-", "", nldi$UT_nwissite$identifier[8]),
 nwm = readNWMdata(comid = nldi$UT_nwissite$comid[8])
 ```
 
-#### Basic Use: Aggregation
+#### Aggregation
 
 The timestep of the retrospective NWM data is hourly. In many cases, its more desirable to have the time step aggregated to a different temporal resolution. nwmTools provides a family of aggregation functions that allow you to specify the aggregation time period, and the aggregation summary statistic
 
@@ -885,11 +912,108 @@ d <-ggplot(data = month) +
 cowplot::plot_grid(a,b,c,d)
 ```
 
+### opendap.catalog
+
+One of the biggest challenges with Earth System and spatial research is extracting data. These challenges include not only finding the source data but then downloading, managing, and extracting the partitions critical for a given task.
+
+Services exist to make data more readily available over the web but introduce new challenges of identifying subsets, working across a wide array of standards (e.g. non-standards), all without alleviating the challenge of finding resources.
+
+In light of this, [opendap.catalog](https://mikejohnson51.github.io/opendap.catalog/) provides 4 primary services. 
+
+Learn more about [OPenDAP here](https://www.earthdata.nasa.gov/engage/open-data-services-and-software/api/opendap)
+
+#### Generalized space (XY) and Time (T) subsets for remote and local NetCDF data with dap()
+ - Handles data streaming, projection, and cropping. Soon to come is masking capabilities.
+
+```{r}
+# remotes::install_github("mikejohnson51/opendap.catalog")
+library(opendap.catalog)
+
+AOI = AOI::aoi_get(state = "OR", county = "Benton")
+
+dap <- dap(URL = 'http://cida.usgs.gov/thredds/dodsC/prism',
+           AOI = AOI,
+           varname = 'ppt',
+           startDate = "2005-01-01",
+           endDate = "2005-01-31")
+
+str(dap, max.level = 1)
+
+plot(terra::rast(dap))
+```
+
+#### A catalog of `r nrow(opendap.catalog::params)` web resources (as of 06/2022)
+
+```{r}
+dplyr::glimpse(opendap.catalog::params)
+```
+
+With 14,160 web resources documented, there are simply too many resources to search through by hand unless you know exactly what you want. This voids the possibility of serendipitous discovery. So, we have added a generally fuzzy search tool to help discover datasets.
+
+Say you want to find what resources there are for daily rainfall? `search` and `search_summary` can help:
+
+```{r}
+search("daily precipitation") |> 
+  search_summary() |> 
+  DT::datatable()
+
+(s = search('gridmet daily precipitation'))
+```
+
+#### Pass catalog elements to the generalized toolsets:
+
+Now that you know the precipitation product you want, lets say we want to look at precipitation in Benton County in April 2022:
+
+```{r}
+(s = opendap.catalog::search('gridmet daily precipitation'))
+
+(OR_rain = dap(catalog = s, 
+             AOI = AOI::aoi_get(state = "OR"), 
+             startDate = "2022-04-01",
+             endDate   = "2022-09-30"))
+
+{
+  plot(sum(OR_rain[[1]]) * 0.001, 
+       main = "Meters of rainfall: Oregon April 2022")
+}
+```
+
+#### Tiled data streams
+
+One of the key features of `dap` is the capacity to make requests over tiled resources. Some resources (like [MODIS](https://modis.gsfc.nasa.gov/)) are tiled in space, and some (like [MACA](https://www.climatologylab.org/maca.html), and [LOCA](https://loca.ucsd.edu/what-is-loca/)) are tiled in time. Below we see an example of how a single `dap` call can consolidate a request that covers multiple spatial tiles:
+
+This one isn't working at the moment - not sure why...
+```{r}
+(s = opendap.catalog::search('mod16a2v006 PET'))
+# dap = dap(
+#     catalog = s,
+#     AOI = AOI::aoi_get(state = "OR", county = "Benton"),
+#     startDate = "2010-01-01",
+#     endDate   = "2010-01-31"
+#   )
+# 
+# plot(dap)
+```
+
+### Zonal analysis
+
+Often out goal when acquiring spatial dat is producing area-based summaries, particularly for watershed analyses.
+
+[`zonal`](https://github.com/NOAA-OWP/zonal) is a package that wraps the excellent [`exactextractr`](https://isciences.gitlab.io/exactextractr/) package with some added performance and convenience for these types of tasks. 
+
+To use zonal, you must supply:
+
+1. a raster dataset (SpatRaster)
+2. a geometry set to summarize over
+3. a summary function (similar to `nwmTools::aggregate_*`)
+4. The column with a unique identifier for each polygon object, and whether the summary data should be joined (`join  = TRUE`) to the original summary data.
+
 ### zonal
 
 Often getting spatial data is not the end goal and in many cases producing area based summaries is critical.
 
 [`zonal`](https://github.com/NOAA-OWP/zonal) is a package that wraps the excellent [`exactextractr`](https://isciences.gitlab.io/exactextractr/) package with some added performance and convenience for these types of tasks. To use zonal, you must supply a raster dataset (SpatRaster), a geometry set to summarize over, and a summary functions (similar to `nwmTools::aggregate_*`). Lastly, you must provide the column with a unique identifier for each polygon object, and whether the summary data should be joined (`join  = TRUE`) to the original summary data.
+
 
 ```{r}
 # remotes::install_github("NOAA-OWP/zonal")
@@ -901,6 +1025,109 @@ zonal::weight_functions()
 ```
 
 
+#### Basic Use
+```{r}
+library(zonal)
+
+OR_counties <- AOI::aoi_get(state = "OR", county = "all")
+system.time({
+summary_data = execute_zonal(OR_rain, 
+                             geom = OR_counties, 
+                             fun = "sum", 
+                             ID = "fip_code", 
+                             join = TRUE)
+})
+```
+
+```{r}
+plot(summary_data[grepl("sum", names(summary_data))], border = NA,
+     max.plot = 20)
+```
+
+### Web data without a "service"
+
+Often the needed data is not delivered by a service or function. This does not mean we are out of luck, but rather that we have to do a little of the "heavy lifting" ourselves. This final section highlights how to vector and raster data from a URL using the http/https and s3 protocols.
+
+These approaches are advantageous when you don't want to download data locally for analysis.
+
+
+#### Access Raster Data
+
+GDAL provides a number of [Virtual File System](https://gdal.org/user/virtual_file_systems.html) drivers to read compressed and network data. 
+
+Three of the most useful for common spatial data tasks include:
+
+- **vsizip** --> file handler that allows reading ZIP archives on-the-fly without decompressing them beforehand.
+
+- **vsicurl** --> A generic file system handler exists for online resources that
+  do not require particular signed authentication schemes
+
+- **vsis3** --> specialized into sub-filesystems for commercial cloud storage services (e.g. AWS, also see  /vsigs/, /vsiaz/, /vsioss/ or /vsiswift/).
+
+#### Basic Usgage
+
+Duke store [VRT](https://gdal.org/drivers/raster/vrt.html) files for the POLARIS soils dataset. `terra` can generate pointers to these datasets -  however data is not extracted until an operation is called on the data. As seen above `dap` provides simplified access to extract subsets of data for OpenDap and VRT endpoints.
+
+```{r}
+
+terra::rast('/vsicurl/http://hydrology.cee.duke.edu/POLARIS/PROPERTIES/v1.0/vrt/alpha_mean_0_5.vrt') 
+
+opendap.catalog::dap('/vsicurl/http://hydrology.cee.duke.edu/POLARIS/PROPERTIES/v1.0/vrt/alpha_mean_0_5.vrt', AOI = AOI::aoi_get(state = "OR", county = "Benton")) |> 
+  plot()
+```
+
+#### Transect example
+
+Here is an example where a global elevation dataset can quickly be used in conjunction with the `NLDI` client to plot the elevation transect of a the Calapooyia River near here:
+
+```{r}
+
+d = dataRetrieval::findNLDI(loc = geocode("Pioneer Park Brownsville, Oregon", pt = TRUE),
+             nav = "UM", 
+             find = c("flowlines", "basin")) 
+
+mapview::mapview(d)
+
+COP30 = opendap.catalog::dap("/vsicurl/https://opentopography.s3.sdsc.edu/raster/COP30/COP30_hh.vrt", 
+            AOI = d$basin)
+
+transect = terra::extract(COP30, terra::vect(sf::st_union(d$UM_flowlines))) |> 
+  dplyr::mutate(location = c(n():1))
+
+ggplot2::ggplot(transect, aes(x = location, y = COP30_hh)) +
+    geom_line() +
+    geom_smooth()
+```
+
+
+#### Access Vector Data
+
+**Basic Usgage: TIGER lines** 
+Since the base data reader of sf is GDAL the vsi capabilities also apply to vector data! Note that the `tigris` and `tidycensus` packages are the recommended way to access US Census data, this is simply by way of example. The added challenge typically is that vector data (especially shapefile data) is generally stored in zip files. This adds an extra layer of complexity when remotely reading these datasets. 
+
+In this example we look at the US Census Bureaus FTP server for TIGER road lines. The data is stored by by 5 digit (county) FIP code in zip files. To access this data we need to identify the FIP code of interest and then chain a `vsizip` with a `vsicurl` call.
+
+```{r}
+AOI  = aoi_get(state = "OR", county = "Benton")
+file = paste0('tl_2021_',AOI$fip_code, '_roads')
+url  = paste0('/vsizip/{/vsicurl/https://www2.census.gov/geo/tiger/TIGER2021/ROADS/', file, '.zip}/',file,'.shp')
+
+system.time({
+  roads  = sf::read_sf(url)
+})
+
+mapview::mapview(roads)
+```
+
+For those curious about the generalization of this, we can see that any GDAL backed software (here terra) can utilize the same URL:
+
+```{r}
+system.time({
+  roads2 = terra::vect(url)
+})
+
+plot(roads2)
+```
 
 ## Use Cases
 
