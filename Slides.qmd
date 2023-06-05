@@ -84,6 +84,89 @@ it is more efficient to download the NHDPlus dataset and perform the navigation
 locally. For example, [NHDPlusTools](https://github.com/doi-usgs/nhdplustools/)
 in R and [PyNHD](https://docs.hyriver.io/readme/pynhd.html) in Python provide tools to navigate the NHDPlus dataset locally.
 
+By in large, web data access will fall into three broad categories. 
+1. APIs, 
+1. Object Stores, and 
+1. File Servers. 
+
+#### APIs
+
+When working with an API, you are interacting with a remote computer that may 
+or may not be prepared to cope with many concurrent requests. The computer may 
+have less compute power than your laptop and it may be connected to an 
+inexpensive storage device that can only provide a few MB/s of throughput. 
+When working with APIs, you should always:
+
+1. start small and check latency per request.
+1. scale up request size and check response time scaling.
+1. increase parallelism slowly and check response performance.
+
+The code below demonstrates this using requests to a geospatial web service.
+
+
+```{r}
+
+point <- sf::st_sfc(sf::st_point(c(-76.61612, 39.23875)), crs = 4326)
+
+# just baseline request time
+start_comid <- nhdplusTools::discover_nhdplus_id(point)
+
+upstream_comid <- dataRetrieval::findNLDI(start_comid, nav = "UT", distance_km = 999)
+
+comids <- as.integer(upstream_comid$UT_flowlines$nhdplus_comid)
+
+sf::sf_use_s2(FALSE) # hides warnings
+
+# first, just check per request timing.
+# if we had a lot to run, simple match will tell us how long to expect.
+system.time(nhdplusTools::subset_nhdplus(comids[2], 
+                                         nhdplus_data = "download", 
+                                         status = FALSE))
+
+# Now try scaling up.
+system.time(nhdplusTools::subset_nhdplus(comids[1:100], 
+                                         nhdplus_data = "download", 
+                                         status = FALSE))
+
+# scale up further and observe timing
+system.time(nhdplusTools::subset_nhdplus(comids[1:400], 
+                                         nhdplus_data = "download", 
+                                         status = FALSE))
+
+# we can experiment with parallelism
+future::plan(future::multisession, workers = 2)
+
+future::future(sf::sf_use_s2(FALSE))
+
+# run in two chunks and two workers
+system.time(future.apply::future_lapply(list(comids[1:200], comids[201:400]), function(x) {
+  suppressMessages(nhdplusTools::subset_nhdplus(x, 
+                               nhdplus_data = "download", 
+                               status = FALSE))
+}, future.seed = TRUE))
+
+# run individually with 2 workers
+system.time(future.apply::future_lapply(comids[1:200], function(x) {
+  suppressMessages(nhdplusTools::subset_nhdplus(x, 
+                               nhdplus_data = "download", 
+                               status = FALSE))
+}, future.seed = TRUE))
+
+future::plan(future::multisession, workers = 8)
+
+# run individually with 8 workers
+# notice that this is faster but not 4x taster
+system.time(future.apply::future_lapply(comids[1:200], function(x) {
+  suppressMessages(nhdplusTools::subset_nhdplus(x, 
+                               nhdplus_data = "download", 
+                               status = FALSE))
+}, future.seed = TRUE))
+```
+
+#### Object Stores and File Servers
+
+Object stores are different than APIs in that they are designed to handle parallelism. If downloading many files from an object store, doing so in parallel can increase total through put assuming you have overall bandwidth to spare. A file server, if not backed by an object store will typically not support parallelism as files are not necessarily stored on a file system that is designed with parallel access in mind. It's always a good idea to do some testing at small scale if you have long running processes that work over the internet to make sure you are using a pattern that makes sense with the baseline performance characteristics of the server.
+
 ### Geospatial data representation fundamentals: simple features and geospatial grids
 
 -   \***Vector** data are comprised of points, lines, and polygons that represent discrete spatial entities, such as a river, watershed, or stream gauge.
@@ -1058,14 +1141,6 @@ plot(summary_data[grepl("sum", names(summary_data))], border = NA,
 })
 
 ```
-
-## Data access summary -- web services and scalability
-
-While there are many amazing new remote data access services and prototcols, they are by no means a panacea. We still have to cope with the realities of limited storage throughput, limited network bandwidth, and limited parallelism support of computer systems. By in large, web data access will fall into three broad categories. APIs, Object Stores, and File Servers. Increasingly, object stores are being used as file servers, but there is still useful a distinction to be drawn. 
-
-When working with an API, you are interacting with a remote computer that may or may not be prepared to cope with many concurrent requests. The computer may have less compute power than your laptop and it may be connected to an inexpensive storage device that can only provide a few MB/s of throughput. When working with APIs, you should always:
-1. start small and check latency per request.
-1. start 
 
 ## R and Python Interoperability
 
