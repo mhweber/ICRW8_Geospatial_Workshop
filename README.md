@@ -96,6 +96,7 @@ Here is a list of some useful geospatial tools and resources:
     Accurately render even the largest data
 * [GeoPandas](https://geopandas.org/en/stable/index.html)
 * [HyRiver](https://docs.hyriver.io/index.html): a suite of Python packages that provides a unified API for retrieving geospatial/temporal data from various web services
+* [leafmap](https://leafmap.org/): A Python package for geospatial analysis and interactive mapping in a Jupyter environment
 * [Python Foundation for Spatial Analysis](https://courses.spatialthoughts.com/python-foundation.html)
 * [Python for Geographic Data Analysis](https://pythongis.org/index.html)
 * [gdptools](https://gdptools.readthedocs.io/en/latest/) A Python package for grid- or polygon-polygon area-weighted interpolation statistics
