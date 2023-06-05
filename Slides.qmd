@@ -14,37 +14,35 @@ date: 2023-06-05
 
 ## Introduction
 
-- Housekeeping
-- Introductions
-- Agenda:
-  1. Key Building blocks in R and Python 
-  2. Examples of fundamental Tools in R
-  3. Examples of fundamental Tools in Python
-  4. Use Cases and Worked Examples
-  5. Demonstration of Watershed Analysis with `Leafmap` and `WhiteboxTools` (leafmap.org/workshops/ICRW_2023/)
-  
-- Framework:
+-   Housekeeping
+-   Introductions
+-   Agenda:
+    1.  Key Building blocks in R and Python
+    2.  Examples of fundamental Tools in R
+    3.  Examples of fundamental Tools in Python
+    4.  Use Cases and Worked Examples
+    5.  Demonstration of Watershed Analysis with `Leafmap` and `WhiteboxTools` (leafmap.org/workshops/ICRW_2023/)
+-   Framework:
 
 This document and all of the workshop material are available at this GitHub repository:
 
-- https://github.com/mhweber/ICRW8_Geospatial_Workshop
+-   https://github.com/mhweber/ICRW8_Geospatial_Workshop
 
 **To Follow Along with the Code**
 
-- This document is built in RStudio with `Quarto` and rendered to html - all code sections can be run in RStudio in the code blocks in `Quarto`, or copied and pasted into a new R script document
-- If you are familiar with using git and GitHub, you can fork and clone the repository and run locally - if not, you can simply copy and paste code to follow along with examples
-- Python code examples are in jupyter notebooks 
-    - if you have successfully set up an environment on your local machine you can run notebooks there
-    - alternatively, you can use the `binder` link we have set up to run jupyter notebooks in a binder environment
-
-
-*The views expressed in this presentation are those of the authors and do not necessarily represent the views or policies of the U.S. Environmental Protection Agency or the U.S.G.S.*
-
-*This land is ancestral and unceded land of the Chepenafa (Mary’s River) Band of the [Kalapuya](https://libraryguides.lanecc.edu/kalapuya) (pronounce “cal-uh-poo-yuh”), who have stewarded this beautiful area for generations.  The descendants of the Kalapuya People are now part of the federally recognized [Confederated Tribes of Grand Ronde](https://www.grandronde.org/) and [Confederated Tribes of the Siletz](https://www.ctsi.nsn.us/) of Oregon. The peak you see from numerous vantage points around Corvallis is Mary's Peak, which the Kalapuya called tcha Timanwi, or 'place of spiritual power', and is the highest peak in the Oregon Coast Range (4,097 feet).*
+-   This document is built in RStudio with `Quarto` and rendered to html - all code sections can be run in RStudio in the code blocks in `Quarto`, or copied and pasted into a new R script document
+-   If you are familiar with using git and GitHub, you can fork and clone the repository and run locally - if not, you can simply copy and paste code to follow along with examples
+-   Python code examples are in jupyter notebooks
+    -   if you have successfully set up an environment on your local machine you can run notebooks there
+    -   alternatively, you can use the `binder` link we have set up to run jupyter notebooks in a binder environment
 
 *The views expressed in this presentation are those of the authors and do not necessarily represent the views or policies of the U.S. Environmental Protection Agency or the U.S.G.S.*
 
-*This land is ancestral and unceded land of the Chepenafa (Mary’s River) Band of the [Kalapuya](https://libraryguides.lanecc.edu/kalapuya) (pronounce “cal-uh-poo-yuh”), who have stewarded this beautiful area for generations.  The descendants of the Kalapuya People are now part of the federally recognized [Confederated Tribes of Grand Ronde](https://www.grandronde.org/) and [Confederated Tribes of the Siletz](https://www.ctsi.nsn.us/) of Oregon. The peak you see from numerous vantage points around Corvallis is Mary's Peak, which the Kalapuya called tcha Timanwi, or 'place of spiritual power', and is the highest peak in the Oregon Coast Range (4,097 feet).*
+*This land is ancestral and unceded land of the Chepenafa (Mary's River) Band of the [Kalapuya](https://libraryguides.lanecc.edu/kalapuya) (pronounce "cal-uh-poo-yuh"), who have stewarded this beautiful area for generations. The descendants of the Kalapuya People are now part of the federally recognized [Confederated Tribes of Grand Ronde](https://www.grandronde.org/) and [Confederated Tribes of the Siletz](https://www.ctsi.nsn.us/) of Oregon. The peak you see from numerous vantage points around Corvallis is Mary's Peak, which the Kalapuya called tcha Timanwi, or 'place of spiritual power', and is the highest peak in the Oregon Coast Range (4,097 feet).*
+
+*The views expressed in this presentation are those of the authors and do not necessarily represent the views or policies of the U.S. Environmental Protection Agency or the U.S.G.S.*
+
+*This land is ancestral and unceded land of the Chepenafa (Mary's River) Band of the [Kalapuya](https://libraryguides.lanecc.edu/kalapuya) (pronounce "cal-uh-poo-yuh"), who have stewarded this beautiful area for generations. The descendants of the Kalapuya People are now part of the federally recognized [Confederated Tribes of Grand Ronde](https://www.grandronde.org/) and [Confederated Tribes of the Siletz](https://www.ctsi.nsn.us/) of Oregon. The peak you see from numerous vantage points around Corvallis is Mary's Peak, which the Kalapuya called tcha Timanwi, or 'place of spiritual power', and is the highest peak in the Oregon Coast Range (4,097 feet).*
 
 ## Key Concepts Across Both languages
 
@@ -84,54 +82,28 @@ Sample JSON format : { "data": "Click Here", "size": 36, "style": "bold", "name"
 
 -   DELETE: delete data in a database
 
-Although web services facilitate accessing various datasets, we have to be wary
-of their limitations. Creating and maintaining a web service is a technically
-challenging and involved task, and it becomes even more complicated when the
-service becomes public. For public web services, number of users and load of
-their request is not predictable. Thus, public web services often have
-limitations and quotas on the number of requests. Considering that there
-are workarounds for these limitations, some users, wittingly or unwittingly,
-can cause a web service to slowdown or even shut down. So, we should expect
-planned or unplanned downtimes when using web services. Planned downtimes
-are usually announced by the service provider that can be for maintenance
-purposes or making some changes to the service. Keeping up with these changes
-is also another aspect that we need to take into account when working with web service.
+Although web services facilitate accessing various datasets, we have to be wary of their limitations. Creating and maintaining a web service is a technically challenging and involved task, and it becomes even more complicated when the service becomes public. For public web services, number of users and load of their request is not predictable. Thus, public web services often have limitations and quotas on the number of requests. Considering that there are workarounds for these limitations, some users, wittingly or unwittingly, can cause a web service to slowdown or even shut down. So, we should expect planned or unplanned downtimes when using web services. Planned downtimes are usually announced by the service provider that can be for maintenance purposes or making some changes to the service. Keeping up with these changes is also another aspect that we need to take into account when working with web service.
 
-Additionally, sending a request and retrieving a response from a web service
-(a web service call) has an inherent overhead and is much slower than accessing
-a local file. Thus, web services might not be suitable for "large" requests,
-and it might be more efficient to download the dataset and store it locally.
-How "large" is large, depends on the capacity of a web service and the
-complexity of the request. For example, the NLDI web service has an endpoint
-that can navigate the NHD network up or downstream of a point of interest up
-to a given distance. This call is computationally expensive thus making many
-such requests can impact the performance of the web service. For such cases,
-it is more efficient to download the NHDPlus dataset and perform the navigation
-locally. For example, [NHDPlusTools](https://github.com/doi-usgs/nhdplustools/)
-in R and [PyNHD](https://docs.hyriver.io/readme/pynhd.html) in Python provide tools to navigate the NHDPlus dataset locally.
+Additionally, sending a request and retrieving a response from a web service (a web service call) has an inherent overhead and is much slower than accessing a local file. Thus, web services might not be suitable for "large" requests, and it might be more efficient to download the dataset and store it locally. How "large" is large, depends on the capacity of a web service and the complexity of the request. For example, the NLDI web service has an endpoint that can navigate the NHD network up or downstream of a point of interest up to a given distance. This call is computationally expensive thus making many such requests can impact the performance of the web service. For such cases, it is more efficient to download the NHDPlus dataset and perform the navigation locally. For example, [NHDPlusTools](https://github.com/doi-usgs/nhdplustools/) in R and [PyNHD](https://docs.hyriver.io/readme/pynhd.html) in Python provide tools to navigate the NHDPlus dataset locally.
 
-By in large, web data access will fall into three broad categories. 
-1. APIs, 
-1. Object Stores, and 
-1. File Servers. 
+By in large, web data access will fall into three broad categories.
+
+1.  APIs,
+2.  Object Stores, and
+3.  File Servers.
 
 #### APIs
 
-When working with an API, you are interacting with a remote computer that may 
-or may not be prepared to cope with many concurrent requests. The computer may 
-have less compute power than your laptop and it may be connected to an 
-inexpensive storage device that can only provide a few MB/s of throughput. 
-When working with APIs, you should always:
+When working with an API, you are interacting with a remote computer that may or may not be prepared to cope with many concurrent requests. The computer may have less compute power than your laptop and it may be connected to an inexpensive storage device that can only provide a few MB/s of throughput. When working with APIs, you should always:
 
-1. start small and check latency per request.
-1. scale up request size and check response time scaling.
-1. increase parallelism slowly and check response performance.
+1.  start small and check latency per request.
+2.  scale up request size and check response time scaling.
+3.  increase parallelism slowly and check response performance.
 
 The code below demonstrates this using requests to a geospatial web service.
 
-
 ```{r}
-
+#| eval: false
 point <- sf::st_sfc(sf::st_point(c(-76.61612, 39.23875)), crs = 4326)
 
 # just baseline request time
@@ -283,7 +255,7 @@ A list of unary predicates:
 A list of binary predicates is:
 
 | predicate            | meaning                                                                                                             | inverse of   |
-|------------------|------------------------------------|------------------|
+|----------------------|---------------------------------------------------------------------------------------------------------------------|--------------|
 | `contains`           | None of the points of A are outside B                                                                               | `within`     |
 | `contains_properly`  | A contains B and B has no points in common with the boundary of A                                                   |              |
 | `covers`             | No points of B lie in the exterior of A                                                                             | `covered_by` |
@@ -402,7 +374,7 @@ knitr::include_graphics("img/sf_xfig.png")
 We can break this down following examples presented in the recently published [Spatial Data Science](https://r-spatial.org/book/03-Geometries.html) by Edzar Pebesma and Rober Bivand. The most common simple feature geometries used to represent a *single* feature are:
 
 | type                 | description                                                        |
-|-----------------------|-------------------------------------------------|
+|----------------------|--------------------------------------------------------------------|
 | `POINT`              | single point geometry                                              |
 | `MULTIPOINT`         | set of points                                                      |
 | `LINESTRING`         | single linestring (two or more points connected by straight lines) |
@@ -741,15 +713,15 @@ head(myGitHubRepos)
 
 ### Examples in Python (separate notebook in binder)
 
-## Data access summary 
+## Data access summary
+
 This just builds on examples for [Working with Geospatial Hydrologic Data Using Web Services (R) for IOW Webinar](https://mikejohnson51.github.io/IOW2022_R/slides.html)
 
 ### AOI
 
-AOI is _NOT_ on CRAN but provides interfaces for geocoding and retrieving spatial boundaries (e.g state, county, and country). When working with web-based,  subsetting services, the ability to quickly define common features is really convenient.
+AOI is *NOT* on CRAN but provides interfaces for geocoding and retrieving spatial boundaries (e.g state, county, and country). When working with web-based, subsetting services, the ability to quickly define common features is really convenient.
 
 We'll see through these examples that the concept of AOI is key to requesting subsets of data. Further well see that a reproducible way of generating these is a quic kway to make the sytanx of disparate packages more aligned.
-
 
 ```{r}
 # remotes::install_github("mikejohnson51/AOI")
@@ -772,11 +744,11 @@ geocode("LaSells Stewart Center Corvallis", pt = TRUE) |> mapview()
 
 We'll hear a lot about Dave's package [nhdplusTools](https://usgs-r.github.io/nhdplusTools/index.html) - it's primarily a R package for working with the NHD and the NHD data model. The package covers 5 primary use topics that include:
 
-1. [data access](https://usgs-r.github.io/nhdplusTools/reference/index.html#data-access)
-2. [data discovery and subsetting (via web services)](https://usgs-r.github.io/nhdplusTools/reference/index.html#discovery-and-subsetting)
-3. [Indexing and Network Navigation](https://usgs-r.github.io/nhdplusTools/reference/index.html#indexing-and-network-navigation)
-4. [Network Navigation](https://usgs-r.github.io/nhdplusTools/reference/index.html#network-navigation)
-5. [Network Attributes](https://usgs-r.github.io/nhdplusTools/reference/index.html#network-attributes)
+1.  [data access](https://usgs-r.github.io/nhdplusTools/reference/index.html#data-access)
+2.  [data discovery and subsetting (via web services)](https://usgs-r.github.io/nhdplusTools/reference/index.html#discovery-and-subsetting)
+3.  [Indexing and Network Navigation](https://usgs-r.github.io/nhdplusTools/reference/index.html#indexing-and-network-navigation)
+4.  [Network Navigation](https://usgs-r.github.io/nhdplusTools/reference/index.html#network-navigation)
+5.  [Network Attributes](https://usgs-r.github.io/nhdplusTools/reference/index.html#network-attributes)
 
 Given the focus here on geospatial data via web services, we will look at functions supporting use case 2.
 
@@ -789,7 +761,7 @@ grep("get_", ls("package:nhdplusTools"), value = TRUE)
 
 #### Basic Use
 
-Let's get data for an AOI around Corvalis. We use `AOI::aoi_get` to get the OpenStreetMap representation of Corvallis, and initialize an empty list to populate: 
+Let's get data for an AOI around Corvalis. We use `AOI::aoi_get` to get the OpenStreetMap representation of Corvallis, and initialize an empty list to populate:
 
 ```{r}
 corvallis     = list()
@@ -797,6 +769,7 @@ corvallis$AOI = aoi_get("Corvallis, OR")
 ```
 
 Populate our Corvallis list with various elements we pull from `get_` functions in `nhdplusTools`:
+
 ```{r}
 corvallis$nhdplus      <- get_nhdplus(AOI = corvallis$AOI) 
 corvallis$waterbodies  <- get_waterbodies(AOI = corvallis$AOI) 
@@ -811,7 +784,7 @@ sapply(corvallis, nrow)
 mapview(corvallis)
 ```
 
-In both the NHDPlus data model, and the emerging international OGC standard for representing surface water features [HY_features](https://docs.opengeospatial.org/is/14-111r6/14-111r6.html) it's recognized that hydrologic entities can be "realized" in a number of ways. 
+In both the NHDPlus data model, and the emerging international OGC standard for representing surface water features [HY_features](https://docs.opengeospatial.org/is/14-111r6/14-111r6.html) it's recognized that hydrologic entities can be "realized" in a number of ways.
 
 For example the holistic notion of a 'catchment' can be realized as a 'divide', 'flowpath', 'outlet', or other representation. The `nhdplusTools::get_nhdplus` functions support getting 3 realizations of the NHD features that are consistent with the NHDPlus Data model (`outlet`, `flowline`, `catchment`, and `all`).
 
@@ -824,12 +797,10 @@ mapview(corvallis)
 
 The USGS supported [dataRetrieval](https://usgs-r.github.io/dataRetrieval/) package provides retrieval functions for USGS and EPA hydrologic and water quality data. Recently a Network Linked Data Index (NLDI) client was also added to the [package](http://usgs-r.github.io/dataRetrieval/articles/nldi.html).
 
-All sorts of dataRetrieval resources:
-[Home page](https://rconnect.usgs.gov/dataRetrieval/)
-[Tutorial for National Water Quality Monditoring Conference - Part 1](https://rconnect.usgs.gov/NMC_dataRetrieval_1/dataRetrieval_1.html#/title-slide)
-[Tutorial for National Water Quality Monditoring Conference - Part 2](https://rconnect.usgs.gov/NMC_dataRetrieval_2/dataRetrieval_2.html#/title-slide)
+All sorts of dataRetrieval resources: [Home page](https://rconnect.usgs.gov/dataRetrieval/) [Tutorial for National Water Quality Monditoring Conference - Part 1](https://rconnect.usgs.gov/NMC_dataRetrieval_1/dataRetrieval_1.html#/title-slide) [Tutorial for National Water Quality Monditoring Conference - Part 2](https://rconnect.usgs.gov/NMC_dataRetrieval_2/dataRetrieval_2.html#/title-slide)
 
 #### Basic Use: Get streamflow Data
+
 What were the two gages we picked up geolocating Corvallis?
 
 ```{r}
@@ -857,6 +828,7 @@ ggplot(data = flows) +
 ```
 
 #### water quality
+
 We can also get water quality information - see the [NWQMC DataRetrieval Tutorial Part 1 for all the details](https://rconnect.usgs.gov/NMC_dataRetrieval_1/dataRetrieval_1.html#/title-slide)
 
 ```{r}
@@ -868,6 +840,7 @@ readWQPdata(statecode = "OR",
 ```
 
 Let's explore phosphorus data in Benton County
+
 ```{r}
 benton_phos <- readWQPsummary(statecode = "OR",
                           countycode="Benton",
@@ -877,7 +850,9 @@ benton_phos <- readWQPsummary(statecode = "OR",
 names(benton_phos) 
 
 ```
+
 Apply some `dplyr` functions to group site information
+
 ```{r}
 benton_phos_summary <- benton_phos |> 
   rename(Site = MonitoringLocationIdentifier) |>
@@ -894,7 +869,8 @@ benton_phos_summary <- benton_phos |>
 benton_phos_summary
 ```
 
-View with `mapview`- first we need to make our results an `sf` data frame for mapview to use.  Easy!
+View with `mapview`- first we need to make our results an `sf` data frame for mapview to use. Easy!
+
 ```{r}
 results_sf <- benton_phos_summary  |> 
   sf::st_as_sf(coords = c("Lon", "Lat"), crs = 4269, remove = FALSE)
@@ -907,27 +883,30 @@ The hydro [Network-Linked Data Index (NLDI)](https://labs.waterdata.usgs.gov/abo
 
 The NLDI service requires the following:
 
-1. A starting entity (`comid`, `nwis`, `wqp`, `location` and more). 
- - The "more" includes the ever-growing set of resources available in the NLDI service that can be accessed with the `get_nldi_sources` function.
+1.  A starting entity (`comid`, `nwis`, `wqp`, `location` and more).
+
+-   The "more" includes the ever-growing set of resources available in the NLDI service that can be accessed with the `get_nldi_sources` function.
 
 ```{r}
 DT::datatable(get_nldi_sources())
 ```
 
-2. A direction to navigate along the network
-  - UM: upper mainstem
-  - UT: upper tributary
-  - DM: downstream mainstem
-  - DD: downstream divergence
+2.  A direction to navigate along the network
 
-3. Features to find along the way!
-  - Any of the above features (e.g. `get_nldi_sources`)
-  - flowlines
-  - basin
+-   UM: upper mainstem
+-   UT: upper tributary
+-   DM: downstream mainstem
+-   DD: downstream divergence
+
+3.  Features to find along the way!
+
+-   Any of the above features (e.g. `get_nldi_sources`)
+-   flowlines
+-   basin
 
 #### Basic use: NLDI
 
-The NLDI client in `dataRetrival` operates by speficing the origin, the navigation mode, and the features to find. In the following example, we want to navigate along the upstream tributary of COMID 101 (up to 1000 km) and find all flowline features, nwis gages, and the contributing drainage area. 
+The NLDI client in `dataRetrival` operates by speficing the origin, the navigation mode, and the features to find. In the following example, we want to navigate along the upstream tributary of COMID 101 (up to 1000 km) and find all flowline features, nwis gages, and the contributing drainage area.
 
 ```{r}
 nldi = findNLDI(comid= 23763529, 
@@ -949,7 +928,6 @@ While `dataRetrival` provides retrieval functions for observed data, there is an
 [`nwmTools`](https://mikejohnson51.github.io/nwmTools/) provides retrieval functions for these retrospective stream flow data from the NOAA National Water Model reanalysis products:
 
 #### Retrival
-
 
 ```{r}
 # remotes::install_github("mikejohnson51/nwmTools")
@@ -1001,12 +979,13 @@ One of the biggest challenges with Earth System and spatial research is extracti
 
 Services exist to make data more readily available over the web but introduce new challenges of identifying subsets, working across a wide array of standards (e.g. non-standards), all without alleviating the challenge of finding resources.
 
-In light of this, [opendap.catalog](https://mikejohnson51.github.io/opendap.catalog/) provides 4 primary services. 
+In light of this, [opendap.catalog](https://mikejohnson51.github.io/opendap.catalog/) provides 4 primary services.
 
 Learn more about [OPenDAP here](https://www.earthdata.nasa.gov/engage/open-data-services-and-software/api/opendap)
 
 #### Generalized space (XY) and Time (T) subsets for remote and local NetCDF data with dap()
- - Handles data streaming, projection, and cropping. Soon to come is masking capabilities.
+
+-   Handles data streaming, projection, and cropping. Soon to come is masking capabilities.
 
 ```{r}
 # remotes::install_github("mikejohnson51/opendap.catalog")
@@ -1022,7 +1001,7 @@ dap <- dap(URL = 'http://cida.usgs.gov/thredds/dodsC/prism',
 
 str(dap, max.level = 1)
 
-plot(terra::rast(dap))
+terra::plot(terra::rast(dap))
 ```
 
 #### A catalog of `r nrow(opendap.catalog::params)` web resources (as of 06/2022)
@@ -1056,8 +1035,8 @@ Now that you know the precipitation product you want, lets say we want to look a
              endDate   = "2022-09-30"))
 
 {
-  plot(sum(OR_rain[[1]]) * 0.001, 
-       main = "Meters of rainfall: Oregon April 2022")
+  terra::plot(sum(OR_rain[[1]]) * 0.001, 
+              main = "Meters of rainfall: Oregon April 2022")
 }
 ```
 
@@ -1066,8 +1045,10 @@ Now that you know the precipitation product you want, lets say we want to look a
 One of the key features of `dap` is the capacity to make requests over tiled resources. Some resources (like [MODIS](https://modis.gsfc.nasa.gov/)) are tiled in space, and some (like [MACA](https://www.climatologylab.org/maca.html), and [LOCA](https://loca.ucsd.edu/what-is-loca/)) are tiled in time. Below we see an example of how a single `dap` call can consolidate a request that covers multiple spatial tiles:
 
 This one isn't working at the moment - not sure why...
+
 ```{r}
 (s = opendap.catalog::search('mod16a2v006 PET'))
+
 # dap = dap(
 #     catalog = s,
 #     AOI = AOI::aoi_get(state = "OR", county = "Benton"),
@@ -1075,28 +1056,27 @@ This one isn't working at the moment - not sure why...
 #     endDate   = "2010-01-31"
 #   )
 # 
-# plot(dap)
+# terra::plot(dap)
 ```
 
 ### Zonal analysis
 
 Often out goal when acquiring spatial dat is producing area-based summaries, particularly for watershed analyses.
 
-[`zonal`](https://github.com/NOAA-OWP/zonal) is a package that wraps the excellent [`exactextractr`](https://isciences.gitlab.io/exactextractr/) package with some added performance and convenience for these types of tasks. 
+[`zonal`](https://github.com/NOAA-OWP/zonal) is a package that wraps the excellent [`exactextractr`](https://isciences.gitlab.io/exactextractr/) package with some added performance and convenience for these types of tasks.
 
 To use zonal, you must supply:
 
-1. a raster dataset (SpatRaster)
-2. a geometry set to summarize over
-3. a summary function (similar to `nwmTools::aggregate_*`)
-4. The column with a unique identifier for each polygon object, and whether the summary data should be joined (`join  = TRUE`) to the original summary data.
+1.  a raster dataset (SpatRaster)
+2.  a geometry set to summarize over
+3.  a summary function (similar to `nwmTools::aggregate_*`)
+4.  The column with a unique identifier for each polygon object, and whether the summary data should be joined (`join  = TRUE`) to the original summary data.
 
 ### zonal
 
 Often getting spatial data is not the end goal and in many cases producing area based summaries is critical.
 
 [`zonal`](https://github.com/NOAA-OWP/zonal) is a package that wraps the excellent [`exactextractr`](https://isciences.gitlab.io/exactextractr/) package with some added performance and convenience for these types of tasks. To use zonal, you must supply a raster dataset (SpatRaster), a geometry set to summarize over, and a summary functions (similar to `nwmTools::aggregate_*`). Lastly, you must provide the column with a unique identifier for each polygon object, and whether the summary data should be joined (`join  = TRUE`) to the original summary data.
-
 
 ```{r}
 # remotes::install_github("NOAA-OWP/zonal")
@@ -1133,23 +1113,21 @@ Often the needed data is not delivered by a service or function. This does not m
 
 These approaches are advantageous when you don't want to download data locally for analysis.
 
-
 #### Access Raster Data
 
-GDAL provides a number of [Virtual File System](https://gdal.org/user/virtual_file_systems.html) drivers to read compressed and network data. 
+GDAL provides a number of [Virtual File System](https://gdal.org/user/virtual_file_systems.html) drivers to read compressed and network data.
 
 Three of the most useful for common spatial data tasks include:
 
-- **vsizip** --> file handler that allows reading ZIP archives on-the-fly without decompressing them beforehand.
+-   **vsizip** --\> file handler that allows reading ZIP archives on-the-fly without decompressing them beforehand.
 
-- **vsicurl** --> A generic file system handler exists for online resources that
-  do not require particular signed authentication schemes
+-   **vsicurl** --\> A generic file system handler exists for online resources that do not require particular signed authentication schemes
 
-- **vsis3** --> specialized into sub-filesystems for commercial cloud storage services (e.g. AWS, also see  /vsigs/, /vsiaz/, /vsioss/ or /vsiswift/).
+-   **vsis3** --\> specialized into sub-filesystems for commercial cloud storage services (e.g. AWS, also see /vsigs/, /vsiaz/, /vsioss/ or /vsiswift/).
 
 #### Basic Usgage
 
-Duke store [VRT](https://gdal.org/drivers/raster/vrt.html) files for the POLARIS soils dataset. `terra` can generate pointers to these datasets -  however data is not extracted until an operation is called on the data. As seen above `dap` provides simplified access to extract subsets of data for OpenDap and VRT endpoints.
+Duke store [VRT](https://gdal.org/drivers/raster/vrt.html) files for the POLARIS soils dataset. `terra` can generate pointers to these datasets - however data is not extracted until an operation is called on the data. As seen above `dap` provides simplified access to extract subsets of data for OpenDap and VRT endpoints.
 
 ```{r}
 
@@ -1182,11 +1160,9 @@ ggplot2::ggplot(transect, aes(x = location, y = COP30_hh)) +
     geom_smooth()
 ```
 
-
 #### Access Vector Data
 
-**Basic Usgage: TIGER lines** 
-Since the base data reader of sf is GDAL the vsi capabilities also apply to vector data! Note that the `tigris` and `tidycensus` packages are the recommended way to access US Census data, this is simply by way of example. The added challenge typically is that vector data (especially shapefile data) is generally stored in zip files. This adds an extra layer of complexity when remotely reading these datasets. 
+**Basic Usgage: TIGER lines** Since the base data reader of sf is GDAL the vsi capabilities also apply to vector data! Note that the `tigris` and `tidycensus` packages are the recommended way to access US Census data, this is simply by way of example. The added challenge typically is that vector data (especially shapefile data) is generally stored in zip files. This adds an extra layer of complexity when remotely reading these datasets.
 
 In this example we look at the US Census Bureaus FTP server for TIGER road lines. The data is stored by by 5 digit (county) FIP code in zip files. To access this data we need to identify the FIP code of interest and then chain a `vsizip` with a `vsicurl` call.
 
@@ -1274,10 +1250,7 @@ plot(point, cex = 2, lwd = 2, add = TRUE)
 
 #### BONUS Use Case
 
-Going forward, linear referencing with the predecessor to the NHD will be to 
-a "mainstem" identifier. A "mainstem id" is a Uniform Resource Identifier that 
-works like a Digital Object Identifier. e.g. `https://geoconnex.us/ref/mainstems/1435189` 
-is the Calapooia River.
+Going forward, linear referencing with the predecessor to the NHD will be to a "mainstem" identifier. A "mainstem id" is a Uniform Resource Identifier that works like a Digital Object Identifier. e.g. `https://geoconnex.us/ref/mainstems/1435189` is the Calapooia River.
 
 If we know the uri ahead of time, we could look it up like this:
 
@@ -1286,12 +1259,10 @@ calapooia <- sf::read_sf("https://geoconnex.us/ref/mainstems/1435189")
 names(calapooia)
 mapview::mapview(calapooia)
 ```
-In the future, any data along the Calapooia would just link to that URI and we
-would know that it is supposed to be linked to that river. 
 
-If we don't know what river our data is on, we can find the URI from a lookup table.
-The mainstem system is brand new. Over time, mainstem lookup tables will become 
-more ubiquitous. Stay tuned!!
+In the future, any data along the Calapooia would just link to that URI and we would know that it is supposed to be linked to that river.
+
+If we don't know what river our data is on, we can find the URI from a lookup table. The mainstem system is brand new. Over time, mainstem lookup tables will become more ubiquitous. Stay tuned!!
 
 ```{r}
 
@@ -1305,7 +1276,6 @@ mainstem_lookup <- readr::read_csv("https://github.com/internetofwater/ref_river
 mainstem_lookup$uri[mainstem_lookup$comid == comid]
 
 ```
-
 
 ### Catchment Characteristics and Accumulation
 
@@ -1364,9 +1334,9 @@ plot(accum_df['tot_PCTIMP2016CAT'])
 
 ### Spatial Data Aggregation and Resampling
 
-Numerous remotely sensed and modeled datasets are available spatially and temporally continuous coverages that can be accessed and processed without first downloading the data. Working with these datasets can be challenging due to data scale and access nuances. The [`opendap.catalog`](https://mikejohnson51.github.io/opendap.catalog/) R package provides a unified catalog of such data sources that can be accessed with both R and Python clients. `opendap.catalog` provides a simple way to discover and retrieve subsets of large XY[Z][T] datasets.
+Numerous remotely sensed and modeled datasets are available spatially and temporally continuous coverages that can be accessed and processed without first downloading the data. Working with these datasets can be challenging due to data scale and access nuances. The [`opendap.catalog`](https://mikejohnson51.github.io/opendap.catalog/) R package provides a unified catalog of such data sources that can be accessed with both R and Python clients. `opendap.catalog` provides a simple way to discover and retrieve subsets of large XY\[Z\]\[T\] datasets.
 
-The demo below shows how to access the catalog and pull a subset of one data source. There's much much more available in the catalog, including some advanced tiling of datasets such as MODIS. 
+The demo below shows how to access the catalog and pull a subset of one data source. There's much much more available in the catalog, including some advanced tiling of datasets such as MODIS.
 
 ```{r}
 library(opendap.catalog)
@@ -1382,8 +1352,7 @@ search("daily precipitation") |>
 plot(harvey[[1]])
 ```
 
-Building on this simple data access, we can use the `zonal` package to create spatial summary statistics. Similar summaries can also be created with the `gdptools` python package relying on the [opendap.catalog](https://gdptools.readthedocs.io/en/latest/index.html) as a source of web availabledata. 
-
+Building on this simple data access, we can use the `zonal` package to create spatial summary statistics. Similar summaries can also be created with the `gdptools` python package relying on the [opendap.catalog](https://gdptools.readthedocs.io/en/latest/index.html) as a source of web availabledata.
 
 ```{r}
 # remotes::install_github("NOAA-OWP/zonal")
@@ -1409,6 +1378,7 @@ plot(summary_data[grepl("sum", names(summary_data))], border = NA,
 We can us[Reticulate](https://rstudio.github.io/reticulate/index.html) to inter-operate easily between R and Python within RStudio and share objects between languages
 
 ```{r}
+#| eval: false
 library(reticulate)
 # reticulate::install_miniconda()
 # create a new environment conda environment 
@@ -1429,6 +1399,7 @@ Simple examples from [reticulate - calling Python](https://rstudio.github.io/ret
 Import a module and call a function from Python:
 
 ```{r}
+#| eval: false
 os <- import("os")
 os$listdir(".")
 ```
@@ -1436,6 +1407,7 @@ os$listdir(".")
 Object conversion - When Python objects are returned to R they are converted to R objects by default - but you can deal in native Python types by choosing `convert=FALSE` in the import function
 
 ```{r}
+#| eval: false
 # import numpy and specify no automatic Python to R conversion
 np <- import("numpy", convert = FALSE)
 
@@ -1454,6 +1426,7 @@ py_to_r(sum)
 Passing Dataframes between Python and R:
 
 ```{r}
+#| eval: false
 pd <- import("pandas")
 penguins <- pd$read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/modeldata/penguins.csv")
 dplyr::glimpse(penguins)
@@ -1462,6 +1435,7 @@ dplyr::glimpse(penguins)
 Or like this:
 
 ```{python}
+#| eval: false
 import pandas as pd
 penguins =pd.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/modeldata/penguins.csv")
 print(penguins.head())
@@ -1470,6 +1444,7 @@ print(penguins.head())
 Call Python from R:
 
 ```{r}
+#| eval: false
 penguins <- py$penguins
 dplyr::glimpse(penguins)
 
@@ -1478,12 +1453,14 @@ dplyr::glimpse(penguins)
 Call R from Python:
 
 ```{r}
+#| eval: false
 data(iris)
 iris <- iris |> 
   dplyr::filter(Petal.Length > 3)
 ```
 
 ```{python}
+#| eval: false
 print(r.iris.head())
 print(r.iris['Petal.Length'].min())
 ```
