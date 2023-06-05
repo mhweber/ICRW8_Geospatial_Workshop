@@ -1,5 +1,5 @@
 ---
-title: "Explore osmar package for extracting trails"
+title: "Explore osmdata package for extracting trails"
 author: "Marc Weber"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
@@ -12,56 +12,51 @@ output:
 
 ### Try extracting trails around Jackson Frazier
 ```{r warning=FALSE, error=FALSE, message=FALSE}
-library(osmar)
+library(osmdata)
 library(sf)
-src <- osmsource_api()
-counties <- st_read('C:/Users/mweber/Temp/Counties.shp')
-benton <- subset(counties, NAME=='Benton' & STATE_NAME=='Oregon')
-st_bbox(benton)
-bb <- corner_bbox(-123.259, 44.598, -123.228, 44.617)
-osm_jf <- get_osm(bb, source = src)
-plot(osm_jf, xlim=c(-123.6, -123.1))
-names(osm_jf)
-summary(osm_jf$ways)
-summary(osm_jf$ways$tags)
-trails <- find(osm_jf, way(tags(k == "highway" & (v == "footway" | v == "path"))))
-trails <- find_down(osm_jf, way(trails))
-trails <- subset(osm_jf, ids = trails)
-plot(trails)
+library(AOI)
+library(mapview)
+mapviewOptions(fgb=FALSE)
+
+county <-  AOI::aoi_get(state = "OR", county = "Benton")
+sf::st_bbox(county)
+# we'll shrink down out bounding box from the full county
+bb <- c(-123.259, 44.598, -123.228, 44.617)
+
+q1 <- opq(bbox = bb) |> 
+    add_osm_feature(key = 'highway', value = 'footway') |> 
+    add_osm_feature(key = 'highway', value = 'path') |> 
+    osmdata_sf()
 ```
 
-### Convert to spatial, then simple features, and make an interactive slippy map
+Check our trails we extracted in mapview
 ```{r warning=FALSE, error=FALSE, message=FALSE}
-library(sf)
-library(mapview)
-# convert to sp
-trails <- as_sp(trails, "lines")
-# convert to sf
-trails <- st_as_sf(trails)
-mapview(trails$geometry)
+
+mapview(q1$osm_lines)
 ```
 
 ### Hypothetical 1km buffer located in Jackson Frazier Wetland
 ```{r warning=FALSE, error=FALSE, message=FALSE}
 site <- data.frame(place=c("Jackson Frazier"),longitude=c(-123.24),latitude=c(44.60))
-coordinates(site) <- ~ longitude + latitude
-proj4string(site) <- '+proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs'
-site <- st_as_sf(site)
+
+site <- sf::st_as_sf(site, coords = c("longitude", "latitude"),
+                     crs = 4269, remove = FALSE)
 # transform to planar (UTM 10N) in order to create buffer
-site <- st_transform(site, crs=3157)
-buf_1k <- st_buffer(site, 1000)
+site <- sf::st_transform(site, crs=3157)
+buf_1k <- sf::st_buffer(site, 1000)
 
 # transform trails to same CRS
-trails <- st_transform(trails, crs=3157)
+trails <- q1$osm_lines |> 
+  sf::st_transform(., crs=3157)
 
 # plot together
-mapview(list(trails$geometry,buf_1k))
+mapview(list(trails,buf_1k))
 ```
 
 ### Now we can calculate trail density in 1km buffer around wetland
 ```{r warning=FALSE, error=FALSE, message=FALSE}
-trails_in_buf <- st_intersection(buf_1k, trails)
-length <- st_length(trails_in_buf)
+trails_in_buf <- sf::st_intersection(buf_1k, trails)
+length <- sf::st_length(trails_in_buf)
 length <- sum(length)
 print(paste0('Trail Density: ',length[[1]], 'meters per sq. km' ))
 
