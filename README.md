@@ -4,8 +4,8 @@
 Material for the 'Working with Geospatial Hydrologic Data for Watershed Analyses in R and Python Using Web Services' ICRW8 Workshop.
 
 Leafmap demo material here:
-[Video](https://youtu.be/RbneXcsN1ak)
-[Notebook](https://leafmap.org/workshops/ICRW_2023)
+-[Video](https://youtu.be/RbneXcsN1ak)
+-[Notebook](https://leafmap.org/workshops/ICRW_2023)
 
 
 ## Getting Started
