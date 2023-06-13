@@ -1,4 +1,5 @@
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/mhweber/ICRW8_Geospatial_Workshop/HEAD)
+[![Colab]([https://mybinder.org/badge_logo.svg](https://colab.research.google.com/drive/1TcRQn2EixmgMwF9cLSUyYb4UnCeZmPBO?usp=sharing)
 
 # ICRW8_Geospatial_Workshop
 Material for the 'Working with Geospatial Hydrologic Data for Watershed Analyses in R and Python Using Web Services' ICRW8 Workshop.
