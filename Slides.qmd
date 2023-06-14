@@ -21,7 +21,10 @@ date: 2023-06-05
   2. Examples of fundamental Tools in R
   3. Examples of fundamental Tools in Python
   4. Use Cases and Worked Examples
-  5. Demonstration of Watershed Analysis with `Leafmap` and `WhiteboxTools` (leafmap.org/workshops/ICRW_2023/)
+  5. Demonstration of Watershed Analysis with `Leafmap` and `WhiteboxTools`:
+    -[Video ](https://youtu.be/RbneXcsN1ak)
+    -[Notebook](https://leafmap.org/workshops/ICRW_2023)
+
   
 - Framework:
 
