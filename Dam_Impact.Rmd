@@ -219,7 +219,7 @@ for(i in 1:nrow(joined)){
   # Use the NLDI to find the upstream COMID (w/in 10km) of each gage site
   tmp = dataRetrieval::findNLDI(nwis = joined$STAID[i], nav = "UT", distance_km = 10)
 
-  # Check if the linked dam COMID is in the uptream COMIDs for each gage
+  # Check if the linked dam COMID is in the upstream COMIDs for each gage
   joined$upstream[i] = joined$dam_comid[i] %in% tmp$UT_flowlines$nhdplus_comid
 }
 
