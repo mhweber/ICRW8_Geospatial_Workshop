@@ -1,15 +1,14 @@
 # ICRW8_Geospatial_Workshop
 Material for the 'Working with Geospatial Hydrologic Data for Watershed Analyses in R and Python Using Web Services' ICRW8 Workshop.
 
-## Python workshop slides here:
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/mhweber/ICRW8_Geospatial_Workshop/HEAD)
-
-Leafmap demo material here:
+## Leafmap demo material here:
 
 [Video](https://youtu.be/RbneXcsN1ak)
 
-[Notebook](https://leafmap.org/workshops/ICRW_2023)
 
+[Notebook](https://leafmap.org/workshops/ICRW_2023)
+## Python workshop slides here:
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/mhweber/ICRW8_Geospatial_Workshop/HEAD)
 
 ## Dam Impact Exercise in Python:
 [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1TcRQn2EixmgMwF9cLSUyYb4UnCeZmPBO?usp=sharing)
