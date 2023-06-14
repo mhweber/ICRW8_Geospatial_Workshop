@@ -21,9 +21,12 @@ date: 2023-06-05
   2. Examples of fundamental Tools in R
   3. Examples of fundamental Tools in Python
   4. Use Cases and Worked Examples
-  5. Demonstration of Watershed Analysis with `Leafmap` and `WhiteboxTools`:
-    -[Video ](https://youtu.be/RbneXcsN1ak)
-    -[Notebook](https://leafmap.org/workshops/ICRW_2023)
+  5. Demonstration of Watershed Analysis with `Leafmap` and `WhiteboxTools` by [Dr. Qiusheng Wu](https://github.com/giswqs):
+  
+
+[Video](https://youtu.be/RbneXcsN1ak)
+
+[Notebook](https://leafmap.org/workshops/ICRW_2023)
 
   
 - Framework:
@@ -494,8 +497,8 @@ AOI::aoi_get(list("Corvallis, OR", 10, 10)) |> mapview()
 
 ```{r}
 # aoi <- AOI::aoi_get(state = "OR", county = "Benton")
-aoi <- aoi_get(list("Corvallis, OR", 10, 10))
-output_tiles <- get_tiles(aoi,
+aoi <- AOI::aoi_get(list("Corvallis, OR", 10, 10))
+output_tiles <- terrainr::get_tiles(aoi,
                           services = c("elevation", "ortho"),
                           resolution = 30 # pixel side length in meters
                           )
@@ -716,7 +719,9 @@ In both the NHDPlus data model, and the emerging international OGC standard for 
 For example the holistic notion of a 'catchment' can be realized as a 'divide', 'flowpath', 'outlet', or other representation. The `nhdplusTools::get_nhdplus` functions support getting 3 realizations of the NHD features that are consistent with the NHDPlus Data model (`outlet`, `flowline`, `catchment`, and `all`).
 
 ```{r}
-corvallis <- get_nhdplus(aoi_get("Corvallis, OR"), realization = "all")
+#| warning: false
+#| message: false
+corvallis <- nhdplusTools::get_nhdplus(aoi_get("Corvallis, OR"), realization = "all")
 mapview(corvallis)
 ```
 
@@ -746,7 +751,7 @@ library(ggplot2)
 # "00060" is stream flow
 
 # we need to bring gages back to corvallis after our last operation
-corvallis$AOI = aoi_get("Corvallis, OR")
+corvallis$AOI = AOI::aoi_get("Corvallis, OR")
 corvallis$gages  <- get_nwis(AOI = corvallis$AOI)
 flows = readNWISdv(siteNumbers = corvallis$gages$site_no, parameterCd = "00060") |> 
   renameNWISColumns()
