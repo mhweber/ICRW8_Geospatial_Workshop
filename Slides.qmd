@@ -979,20 +979,22 @@ Learn more about [OPenDAP here](https://www.earthdata.nasa.gov/engage/open-data-
  - Handles data streaming, projection, and cropping. Soon to come is masking capabilities.
 
 ```{r}
+#| eval: false
 # remotes::install_github("mikejohnson51/opendap.catalog")
 library(opendap.catalog)
+library(terra)
 
 AOI = AOI::aoi_get(state = "OR", county = "Benton")
 
-dap <- dap(URL = 'http://cida.usgs.gov/thredds/dodsC/prism',
+prism <- opendap.catalog::dap(URL = 'http://cida.usgs.gov/thredds/dodsC/prism',
            AOI = AOI,
            varname = 'ppt',
            startDate = "2005-01-01",
            endDate = "2005-01-31")
 
-str(dap, max.level = 1)
+str(prism, max.level = 1)
 
-plot(terra::rast(dap))
+plot(terra::rast(prism))
 ```
 
 #### A catalog of `r nrow(opendap.catalog::params)` web resources (as of 06/2022)
@@ -1006,11 +1008,11 @@ With 14,160 web resources documented, there are simply too many resources to sea
 Say you want to find what resources there are for daily rainfall? `search` and `search_summary` can help:
 
 ```{r}
-search("daily precipitation") |> 
-  search_summary() |> 
+opendap.catalog::search("daily precipitation") |> 
+  opendap.catalog::search_summary() |> 
   DT::datatable()
 
-(s = search('gridmet daily precipitation'))
+# (s = opendap.catalog::search('gridmet daily precipitation'))
 ```
 
 #### Pass catalog elements to the generalized toolsets:
@@ -1018,9 +1020,10 @@ search("daily precipitation") |>
 Now that you know the precipitation product you want, lets say we want to look at precipitation in Benton County in April 2022:
 
 ```{r}
+#| eval: false
 (s = opendap.catalog::search('gridmet daily precipitation'))
 
-(OR_rain = dap(catalog = s, 
+(OR_rain = opendap.catalog::dap(catalog = s, 
              AOI = AOI::aoi_get(state = "OR"), 
              startDate = "2022-04-01",
              endDate   = "2022-09-30"))
@@ -1035,21 +1038,21 @@ Now that you know the precipitation product you want, lets say we want to look a
 
 One of the key features of `dap` is the capacity to make requests over tiled resources. Some resources (like [MODIS](https://modis.gsfc.nasa.gov/)) are tiled in space, and some (like [MACA](https://www.climatologylab.org/maca.html), and [LOCA](https://loca.ucsd.edu/what-is-loca/)) are tiled in time. Below we see an example of how a single `dap` call can consolidate a request that covers multiple spatial tiles:
 
-This one isn't working at the moment - not sure why...
 ```{r}
+#| eval: false
 (s = opendap.catalog::search('mod16a2v006 PET'))
-# dap = dap(
-#     catalog = s,
-#     AOI = AOI::aoi_get(state = "OR", county = "Benton"),
-#     startDate = "2010-01-01",
-#     endDate   = "2010-01-31"
-#   )
-# 
-# plot(dap)
+dap = dap(
+    catalog = s,
+    AOI = AOI::aoi_get(state = "OR", county = "Benton"),
+    startDate = "2010-01-01",
+    endDate   = "2010-01-31"
+  )
+
+plot(dap)
 ```
 
 ### Zonal analysis
-
+#| eval: false
 Often out goal when acquiring spatial dat is producing area-based summaries, particularly for watershed analyses.
 
 [`zonal`](https://github.com/NOAA-OWP/zonal) is a package that wraps the excellent [`exactextractr`](https://isciences.gitlab.io/exactextractr/) package with some added performance and convenience for these types of tasks. 
@@ -1069,6 +1072,7 @@ Often getting spatial data is not the end goal and in many cases producing area 
 
 
 ```{r}
+#| eval: false
 # remotes::install_github("NOAA-OWP/zonal")
 library(zonal)
 
@@ -1080,8 +1084,8 @@ zonal::weight_functions()
 
 #### Basic Use
 ```{r}
+#| eval: false
 library(zonal)
-
 OR_counties <- AOI::aoi_get(state = "OR", county = "all")
 system.time({
 summary_data = execute_zonal(OR_rain, 
@@ -1093,6 +1097,7 @@ summary_data = execute_zonal(OR_rain,
 ```
 
 ```{r}
+#| eval: false
 plot(summary_data[grepl("sum", names(summary_data))], border = NA,
      max.plot = 20)
 ```
@@ -1161,20 +1166,21 @@ Since the base data reader of sf is GDAL the vsi capabilities also apply to vect
 In this example we look at the US Census Bureaus FTP server for TIGER road lines. The data is stored by by 5 digit (county) FIP code in zip files. To access this data we need to identify the FIP code of interest and then chain a `vsizip` with a `vsicurl` call.
 
 ```{r}
-AOI  = aoi_get(state = "OR", county = "Benton")
+#| eval: false
+AOI  = AOI::aoi_get(state = "OR", county = "Benton")
 file = paste0('tl_2021_',AOI$fip_code, '_roads')
 url  = paste0('/vsizip/{/vsicurl/https://www2.census.gov/geo/tiger/TIGER2021/ROADS/', file, '.zip}/',file,'.shp')
 
 system.time({
   roads  = sf::read_sf(url)
 })
-
 mapview::mapview(roads)
 ```
 
 For those curious about the generalization of this, we can see that any GDAL backed software (here terra) can utilize the same URL:
 
 ```{r}
+#| eval: false
 system.time({
   roads2 = terra::vect(url)
 })
